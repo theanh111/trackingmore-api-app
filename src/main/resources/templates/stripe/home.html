@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="UTF-8">
+    <title>Home</title>
+    <script src="https://polyfill.io/v3/polyfill.min.js?version=3.52.1&features=fetch"></script>
+    <script src="https://js.stripe.com/v3/"></script>
+</head>
+<body>
+<table>
+    <th>Đây là Order</th>
+    <tr th:each="order: ${orderList}">
+        <td th:text="${order.currency}" />
+        <td th:text="${order.amount}" />
+    </tr>
+</table>
+<button id="myButton">Pay Now</button>
+<button id="nextButton">Set up automatic Pay</button>
+
+
+<script type="text/javascript">
+    document.getElementById("myButton").onclick = function () {
+        location.href = "/checkout"
+    }
+    document.getElementById("nextButton").onclick = function (){
+        location.href = "/auto"
+    }
+</script>
+</body>
+</html>

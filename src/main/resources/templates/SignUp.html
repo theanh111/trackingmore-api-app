@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SignUp</title>
+</head>
+<body>
+
+<script>
+    var userId = 1;
+    fetch("http://localhost:8080/paypal/v1/" + userId + "/get-link-signup", {
+        method: 'POST',
+        headers: {
+            "Content-Type": "application/json"
+        },
+    }).then(function (res) {
+        console.log(res)
+        return res.json()
+    }).then(function (data){
+        console.log(data)
+        document.getElementById("link").href = data.href+"&displayMode=minibrowser";
+    });
+    function onboardedCallback(authCode, sharedId) {
+        fetch('http://localhost:8080/paypal/v1/'+userId+'/get-authentication', {
+            method: 'POST',
+            headers: {
+                'content-type': 'application/json'
+            },
+            body: JSON.stringify({
+                authCode: authCode,
+                sharedId: sharedId
+            })
+        }).then(function (res) {
+            if (!response.ok) {
+                alert("Something went wrong!");
+            }
+        });
+    }
+</script>
+<a id="link" target="_blank" data-paypal-onboard-complete="onboardedCallback"
+   href=""
+   data-paypal-button="true">Sign up for PayPal</a>
+<script id="paypal-js"
+        src="https://www.sandbox.paypal.com/webapps/merchantboarding/js/lib/lightbox/partner.js"></script>
+</body>
+</html>
