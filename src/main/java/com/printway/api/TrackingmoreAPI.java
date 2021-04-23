@@ -40,37 +40,30 @@ public class TrackingmoreAPI {
     private NewTrackingService newTrackingService = new NewTrackingService();
 
     public void check() {
-        TBLNewTracking tblNewTracking = new TBLNewTracking();
-        tblNewTracking.setTrackingNumber("MULSXV135552814zQ8801");
-        tblNewTracking.setPartnerTrackingNumber("420199349374869903506588498414");
-        tblNewTracking.setOrderId("MD76965");
-
-//        List<TBLNewTracking> listNewTracking = newTrackingService.findAll();
-        List<TBLNewTracking> listNewTracking = new ArrayList<>();
-        listNewTracking.add(tblNewTracking);
-        for (int i = 0; i < listNewTracking.size(); i++) {
-            System.out.println(i + ") == TBLNEWTRACKING == [ orderId = "
-                    + listNewTracking.get(i).getOrderId()
-                    + " ], [ partnerTrackingNumber = "
-                    + listNewTracking.get(i).getPartnerTrackingNumber()
-                    + " ], [ trackingNumber = "
-                    + listNewTracking.get(i).getTrackingNumber()
-                    + " ]"
-            );
-        }
-        System.out.println("--------------------------------------------");
-
-        for (int i = 0; i < listNewTracking.size(); i++) {
-            try {
-//                String tblDeliveryStatus = deliveryService.findStatusByTrackingNumber(listNewTracking.get(i).getPartnerTrackingNumber());
-//                if (tblDeliveryStatus != null && !tblDeliveryStatus.equals("delivered")) {
-                String carrierCode = getTrackingCarrier(listNewTracking.get(i).getPartnerTrackingNumber());
-                getTrackingResult(carrierCode, listNewTracking.get(i));
-//                }
-            } catch (Exception e) {
-                e.printStackTrace();
+        try {
+            List<TBLNewTracking> listNewTracking = newTrackingService.findAll();
+            for (int i = 0; i < listNewTracking.size(); i++) {
+                System.out.println(i + ") == TBLNEWTRACKING == [ orderId = "
+                        + listNewTracking.get(i).getOrderId()
+                        + " ], [ partnerTrackingNumber = "
+                        + listNewTracking.get(i).getPartnerTrackingNumber()
+                        + " ], [ trackingNumber = "
+                        + listNewTracking.get(i).getTrackingNumber()
+                        + " ]"
+                );
             }
+            System.out.println("--------------------------------------------");
+            for (int i = 0; i < listNewTracking.size(); i++) {
+                String tblDeliveryStatus = deliveryService.findStatusByTrackingNumber(listNewTracking.get(i).getPartnerTrackingNumber());
+                if (tblDeliveryStatus != null && !tblDeliveryStatus.equals("delivered")) {
+                    String carrierCode = getTrackingCarrier(listNewTracking.get(i).getPartnerTrackingNumber());
+                    getTrackingResult(carrierCode, listNewTracking.get(i));
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+
     }
 
     public void getTrackingResult(String carrier, TBLNewTracking tblNewTracking) {
@@ -81,8 +74,7 @@ public class TrackingmoreAPI {
             String orderId = tblNewTracking.getOrderId();
             String statusTBLDelivery = deliveryService.findStatusByTrackingNumber(trackingNumber);
             System.out.println("TBL Delivery Status: " + statusTBLDelivery);
-
-            System.out.println("== Result: " + trackingNumber);
+            System.out.println("== Getting Result: " + trackingNumber);
             CloseableHttpClient client = HttpClients.createDefault();
             HttpGet httpGet = new HttpGet(TRACKING_MORE_API + GET_RESULT + carrier + "/" + trackingNumber);
             httpGet.setHeader(HEADER_KEY, APP_KEY);
@@ -120,7 +112,7 @@ public class TrackingmoreAPI {
             payload.put("carrier_code", carrierCode);
             httpPost.setEntity(new StringEntity(payload.toString(), ContentType.APPLICATION_JSON));
             httpPost.setHeader(HEADER_KEY, APP_KEY);
-            HttpResponse httpResponse = client.execute(httpPost);
+            client.execute(httpPost);
             System.out.println("=== POST [" + trackingNumber + " ] TRACKING TO TRACKING MORE ===");
             System.out.println("--------------------------------------------");
             client.close();
@@ -132,7 +124,7 @@ public class TrackingmoreAPI {
     public String getTrackingCarrier(String trackingNumber) {
         String carrierCode = "";
         try {
-            System.out.println("== Get Tracking Carrier: " + trackingNumber);
+            System.out.println("== Getting Tracking Carrier: " + trackingNumber);
             CloseableHttpClient client = HttpClients.createDefault();
             HttpPost httpPost = new HttpPost(TRACKING_MORE_API + DETECT_COURIER);
             JSONObject payload = new JSONObject();
