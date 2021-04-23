@@ -145,13 +145,13 @@ public class TrackingmoreAPI {
                 client.close();
             }
             if (Integer.parseInt(metaObject.get("code").toString()) == 200) {
+                if (statusTBLDelivery == null) {
+                    checkTrackingInfoToSave(responseObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
+                }
                 if (statusTBLDelivery != null) {
                     if (!statusTBLDelivery.equals("delivered")) {
                         checkTrackingInfoToUpdate(responseObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
                     }
-                }
-                if (statusTBLDelivery == null) {
-                    checkTrackingInfoToSave(responseObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
                 }
             }
         } catch (Exception e) {
@@ -161,7 +161,6 @@ public class TrackingmoreAPI {
 
     public void createTracking(String trackingNumber, String carrierCode) {
         try {
-            System.out.println("Create");
             CloseableHttpClient client = HttpClients.createDefault();
             HttpPost httpPost = new HttpPost(TRACKING_MORE_API + CREATE_TRACKING);
             JSONObject payload = new JSONObject();
@@ -337,9 +336,7 @@ public class TrackingmoreAPI {
         } catch (JSONException jsonException) {
             System.out.println("JSON error");
         }
-
-        TBLDelivery tblDelivery = tblDeliveryObj.createDeliveryObject(trackingNumber, orderId, partnerTrackingNumber, events.toString(), status, dateCurrent, lastEvent, transitTime, carrierCode);
-        return tblDelivery;
+        return tblDeliveryObj.createDeliveryObject(trackingNumber, orderId, partnerTrackingNumber, events.toString(), status, dateCurrent, lastEvent, transitTime, carrierCode);
     }
 
     public TBLDelivery getDestinationEvent(JSONObject dataObj, JSONObject destinationObj, String trackingNumber, String orderId, String partnerTrackingNumber, Date dateCurrent) {
@@ -373,9 +370,7 @@ public class TrackingmoreAPI {
         } catch (JSONException jsonException) {
             System.out.println("JSON error");
         }
-
-        TBLDelivery tblDelivery = tblDeliveryObj.createDeliveryObject(trackingNumber, orderId, partnerTrackingNumber, events.toString(), status, dateCurrent, lastEvent, transitTime, carrierCode);
-        return tblDelivery;
+        return tblDeliveryObj.createDeliveryObject(trackingNumber, orderId, partnerTrackingNumber, events.toString(), status, dateCurrent, lastEvent, transitTime, carrierCode);
     }
 
     public TBLDelivery getBothEvent(JSONObject dataObj, JSONObject originObj, JSONObject destinationObj, String trackingNumber, String orderId, String partnerTrackingNumber, Date dateCurrent) {
@@ -391,24 +386,26 @@ public class TrackingmoreAPI {
             String transitTime = "";
             String lastEvent = "";
             try {
-                carrierCode = dataObj.getString("carrier_code");
-                status = dataObj.getString("status");
                 if (dataObj.get("itemTimeLength") != JSONObject.NULL) {
                     transitTime = dataObj.getString("itemTimeLength");
+                }
+                if (dataObj.get("carrier_code") == JSONObject.NULL || dataObj.get("carrier_code").equals("")) {
+                    carrierCode = "No Info";
+                } else {
+                    carrierCode = dataObj.getString("carrier_code");
                 }
                 if (dataObj.get("lastEvent").equals("")) {
                     lastEvent = "No Info";
                 } else {
                     lastEvent = dataObj.getString("lastEvent");
                 }
-
+                status = dataObj.getString("status");
                 System.out.println(" - Status: " + status);
                 System.out.println(" - Transit Time: " + transitTime);
                 System.out.println(" - Carrier Code: " + carrierCode);
                 System.out.println(" - ORIGIN and DESTINATION NULL");
                 System.out.println(" - Last Event: " + lastEvent);
                 tblDelivery = tblDeliveryObj.createDeliveryObject(trackingNumber, orderId, partnerTrackingNumber, events.toString(), status, dateCurrent, lastEvent, transitTime, carrierCode);
-
             } catch (JSONException jsonException) {
                 System.out.println("JSON error");
             }
