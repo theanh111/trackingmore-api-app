@@ -30,7 +30,7 @@ public class NewTrackingRepository {
 
         try {
             Connection conn = DriverManager.getConnection(url, username, password);
-            String sqlQuery = "SELECT order_id, tracking_number, partner_tracking_number FROM orderdesk.tblnewtracking WHERE shipped = 1 AND tracking_number IS NOT NULL";
+            String sqlQuery = "SELECT order_id, tracking_number, partner_tracking_number FROM orderdesk.tblnewtracking WHERE shipped = 1 AND partner_tracking_number IS NOT NULL AND partner_tracking_number != \"\";";
             PreparedStatement statement = conn.prepareStatement(sqlQuery);
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {

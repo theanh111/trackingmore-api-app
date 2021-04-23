@@ -42,4 +42,21 @@ public class TBLDelivery {
 
     @Column(name = "transit_time")
     private String transitTime;
+
+    @Column(name = "carrier_code")
+    private String carrierCode;
+
+    public TBLDelivery createDeliveryObject(String tracking_number, String order_number, String partner_tracking_number, String events, String status, Date dtime_entered, String last_events, String transit_time,String carrier_code) {
+        TBLDelivery tblDelivery = new TBLDelivery();
+        tblDelivery.setTrackingNumber(tracking_number);
+        tblDelivery.setPartnerTrackingNumber(partner_tracking_number);
+        tblDelivery.setOrderNumber(order_number);
+        tblDelivery.setEvents(events);
+        tblDelivery.setStatus(status);
+        tblDelivery.setTransitTime(transit_time);
+        tblDelivery.setLastEvents(last_events);
+        tblDelivery.setDtimeEntered(dtime_entered);
+        tblDelivery.setCarrierCode(carrier_code);
+        return tblDelivery;
+    }
 }
