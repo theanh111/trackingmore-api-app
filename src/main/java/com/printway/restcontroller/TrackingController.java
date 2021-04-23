@@ -14,7 +14,6 @@ public class TrackingController {
     @Autowired
     private TrackingmoreAPI trackingmoreAPI;
 
-
     @RequestMapping(value = "update", method = RequestMethod.GET)
     public ResponseEntity<?> updateDelivery() {
         try {
@@ -22,10 +21,9 @@ public class TrackingController {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        System.out.println("Done Update Delivery");
+        System.out.println("Done Update TBL Delivery");
         return new ResponseEntity<>(HttpStatus.OK);
     }
-
 
     @RequestMapping(value = "save", method = RequestMethod.GET)
     public ResponseEntity<?> saveShipment() {
@@ -34,7 +32,7 @@ public class TrackingController {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        System.out.println("Done Save");
+        System.out.println("Done Save TBL Delivery");
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

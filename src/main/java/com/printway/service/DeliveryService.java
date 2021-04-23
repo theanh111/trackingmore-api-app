@@ -1,9 +1,7 @@
 package com.printway.service;
 
-
 import com.printway.entityDB.TBLDelivery;
 import com.printway.repository.DeliveryRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

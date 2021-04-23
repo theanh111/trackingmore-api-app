@@ -27,8 +27,8 @@ public class Application {
         dataSource.setUsername(env.getProperty("spring.datasource.username"));
         dataSource.setPassword(env.getProperty("spring.datasource.password"));
         return dataSource;
-
     }
+
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
     }
