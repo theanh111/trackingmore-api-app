@@ -27,11 +27,15 @@ public class NewTrackingRepository {
 
     public List<TBLNewTracking> findAll() {
         List<TBLNewTracking> newTrackingList = new ArrayList<>();
-
         try {
             Connection conn = DriverManager.getConnection(url, username, password);
-            String sqlQuery = "SELECT order_id, tracking_number, partner_tracking_number FROM orderdesk.tblnewtracking WHERE shipped = 1 AND partner_tracking_number IS NOT NULL AND partner_tracking_number != \"\";";
+            String lockSql = "LOCK TABLES tblnewtracking READ;";
+            String sqlQuery = "SELECT order_id, tracking_number, partner_tracking_number FROM tblnewtracking WHERE shipped = 1 AND partner_tracking_number IS NOT NULL AND partner_tracking_number != \"\";";
+            String unlockSql = "UNLOCK TABLES;";
+            PreparedStatement lock = conn.prepareStatement(lockSql);
             PreparedStatement statement = conn.prepareStatement(sqlQuery);
+            PreparedStatement unlock = conn.prepareStatement(unlockSql);
+            lock.execute();
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
                 TBLNewTracking tblNewTracking = new TBLNewTracking();
@@ -40,6 +44,7 @@ public class NewTrackingRepository {
                 tblNewTracking.setPartnerTrackingNumber(resultSet.getString("partner_tracking_number"));
                 newTrackingList.add(tblNewTracking);
             }
+            unlock.execute();
             conn.close();
         } catch (SQLException e) {
             System.err.println(e.getMessage());

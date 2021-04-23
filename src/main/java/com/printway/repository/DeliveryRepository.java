@@ -28,8 +28,13 @@ public class DeliveryRepository {
     public void insert(TBLDelivery delivery) {
         try {
             Connection conn = DriverManager.getConnection(url, username, password);
-            String sqlQuery = "INSERT INTO tbldelivery (tracking_number, order_number, partner_tracking_number, events, status, dtime_entered, last_events, transit_time, carrier_code) VALUES (?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE order_number = ?";
+            String lockSql = "LOCK TABLES tbldelivery WRITE;";
+            String sqlQuery = "INSERT INTO tbldelivery (tracking_number, order_number, partner_tracking_number, events, status, dtime_entered, last_events, transit_time, carrier_code) VALUES (?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE order_number = ?;";
+            String unlockSql = "UNLOCK TABLES;";
+            PreparedStatement lock = conn.prepareStatement(lockSql);
             PreparedStatement statement = conn.prepareStatement(sqlQuery);
+            PreparedStatement unlock = conn.prepareStatement(unlockSql);
+            lock.execute();
             statement.setString(1, delivery.getTrackingNumber());
             statement.setString(2, delivery.getOrderNumber());
             statement.setString(3, delivery.getPartnerTrackingNumber());
@@ -41,6 +46,7 @@ public class DeliveryRepository {
             statement.setString(9, delivery.getCarrierCode());
             statement.setString(10, delivery.getOrderNumber());
             statement.executeUpdate();
+            unlock.execute();
             conn.close();
         } catch (SQLException e) {
             System.err.println(e.getMessage());
@@ -50,8 +56,13 @@ public class DeliveryRepository {
     public void update(TBLDelivery delivery) {
         try {
             Connection conn = DriverManager.getConnection(url, username, password);
-            String sqlQuery = "UPDATE tbldelivery SET status = ?, events = ?, dtime_entered = ?, last_events = ?, transit_time = ? WHERE tracking_number = ?";
+            String lockSql = "LOCK TABLES tbldelivery WRITE;";
+            String sqlQuery = "UPDATE tbldelivery SET status = ?, events = ?, dtime_entered = ?, last_events = ?, transit_time = ? WHERE tracking_number = ?;";
+            String unlockSql = "UNLOCK TABLES;";
+            PreparedStatement lock = conn.prepareStatement(lockSql);
             PreparedStatement statement = conn.prepareStatement(sqlQuery);
+            PreparedStatement unlock = conn.prepareStatement(unlockSql);
+            lock.execute();
             statement.setString(1, delivery.getStatus());
             statement.setString(2, delivery.getEvents());
             statement.setTimestamp(3, new Timestamp(delivery.getDtimeEntered().getTime()));
@@ -59,6 +70,7 @@ public class DeliveryRepository {
             statement.setString(5, delivery.getTransitTime());
             statement.setString(6, delivery.getTrackingNumber());
             statement.executeUpdate();
+            unlock.execute();
             conn.close();
         } catch (SQLException e) {
             System.err.println(e.getMessage());
@@ -69,13 +81,19 @@ public class DeliveryRepository {
         String status = null;
         try {
             Connection conn = DriverManager.getConnection(url, username, password);
-            String sqlQuery = "SELECT status FROM tbldelivery WHERE tracking_number = ?";
+            String lockSql = "LOCK TABLES tbldelivery READ;";
+            String sqlQuery = "SELECT status FROM tbldelivery WHERE tracking_number = ?;";
+            String unlockSql = "UNLOCK TABLES;";
+            PreparedStatement lock = conn.prepareStatement(lockSql);
             PreparedStatement statement = conn.prepareStatement(sqlQuery);
+            PreparedStatement unlock = conn.prepareStatement(unlockSql);
+            lock.execute();
             statement.setString(1, trackingNumber);
             ResultSet resultSet = statement.executeQuery();
             if (resultSet.next()) {
                 status = resultSet.getString("status");
             }
+            unlock.execute();
             conn.close();
         } catch (SQLException e) {
             System.err.println(e.getMessage());
@@ -87,13 +105,19 @@ public class DeliveryRepository {
         List<String> statusList = new ArrayList<>();
         try {
             Connection conn = DriverManager.getConnection(url, username, password);
-            String sqlQuery = "SELECT tracking_number FROM tbldelivery";
+            String lockSql = "LOCK TABLES tbldelivery READ;";
+            String sqlQuery = "SELECT tracking_number FROM tbldelivery;";
+            String unlockSql = "UNLOCK TABLES;";
+            PreparedStatement lock = conn.prepareStatement(lockSql);
             PreparedStatement statement = conn.prepareStatement(sqlQuery);
+            PreparedStatement unlock = conn.prepareStatement(unlockSql);
+            lock.execute();
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
                 String trackingNumber = resultSet.getString("tracking_number");
                 statusList.add(trackingNumber);
             }
+            unlock.execute();
             conn.close();
         } catch (SQLException e) {
             System.err.println(e.getMessage());
@@ -105,8 +129,14 @@ public class DeliveryRepository {
         TBLDelivery delivery = new TBLDelivery();
         try {
             Connection conn = DriverManager.getConnection(url, username, password);
-            String sqlQuery = "SELECT * FROM tbldelivery WHERE tracking_number = ?";
+            String lockSql = "LOCK TABLES tbldelivery READ;";
+            String sqlQuery = "SELECT tracking_number, order_number, partner_tracking_number, events, status, dtime_entered, last_events ,transit_time ,carrier_code " +
+                    "FROM tbldelivery WHERE tracking_number = ?;";
+            String unlockSql = "UNLOCK TABLES;";
+            PreparedStatement lock = conn.prepareStatement(lockSql);
             PreparedStatement statement = conn.prepareStatement(sqlQuery);
+            PreparedStatement unlock = conn.prepareStatement(unlockSql);
+            lock.execute();
             statement.setString(1, trackingNumber);
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
@@ -116,6 +146,7 @@ public class DeliveryRepository {
                 delivery.setDtimeEntered(resultSet.getDate("dtime_entered"));
                 delivery.setWhoEntered(resultSet.getString("who_entered"));
             }
+            unlock.execute();
             conn.close();
         } catch (SQLException e) {
             System.err.println(e.getMessage());
