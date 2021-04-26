@@ -81,7 +81,7 @@ public class TrackingmoreAPI {
             System.out.println("--------------------------------------------");
             for (int i = 0; i < listNewTracking.size(); i++) {
                 String tblDeliveryStatus = deliveryService.findStatusByTrackingNumber(listNewTracking.get(i).getPartnerTrackingNumber());
-                if (tblDeliveryStatus != null && !tblDeliveryStatus.equals("delivered")) {
+                if (tblDeliveryStatus != null && !tblDeliveryStatus.equals("delivered") && !tblDeliveryStatus.equals("notfound")) {
                     String carrierCode = getTrackingCarrier(listNewTracking.get(i).getPartnerTrackingNumber());
                     getTrackingResult(carrierCode, listNewTracking.get(i));
                 }
@@ -149,7 +149,7 @@ public class TrackingmoreAPI {
                     checkTrackingInfoToSave(responseObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
                 }
                 if (statusTBLDelivery != null) {
-                    if (!statusTBLDelivery.equals("delivered")) {
+                    if (!statusTBLDelivery.equals("delivered") && !statusTBLDelivery.equals("notfound")) {
                         checkTrackingInfoToUpdate(responseObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
                     }
                 }
