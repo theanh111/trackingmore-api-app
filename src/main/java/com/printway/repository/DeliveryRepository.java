@@ -5,8 +5,6 @@ import com.printway.entityDB.TBLDelivery;
 import org.springframework.stereotype.Repository;
 
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
 
 @Repository
 public class DeliveryRepository {
@@ -99,58 +97,5 @@ public class DeliveryRepository {
             System.err.println(e.getMessage());
         }
         return status;
-    }
-
-    public List<String> findAllTrackingNumber() {
-        List<String> statusList = new ArrayList<>();
-        try {
-            Connection conn = DriverManager.getConnection(url, username, password);
-            String lockSql = "LOCK TABLES tbldelivery READ;";
-            String sqlQuery = "SELECT tracking_number FROM tbldelivery;";
-            String unlockSql = "UNLOCK TABLES;";
-            PreparedStatement lock = conn.prepareStatement(lockSql);
-            PreparedStatement statement = conn.prepareStatement(sqlQuery);
-            PreparedStatement unlock = conn.prepareStatement(unlockSql);
-            lock.execute();
-            ResultSet resultSet = statement.executeQuery();
-            while (resultSet.next()) {
-                String trackingNumber = resultSet.getString("tracking_number");
-                statusList.add(trackingNumber);
-            }
-            unlock.execute();
-            conn.close();
-        } catch (SQLException e) {
-            System.err.println(e.getMessage());
-        }
-        return statusList;
-    }
-
-    public TBLDelivery findOne(String trackingNumber) {
-        TBLDelivery delivery = new TBLDelivery();
-        try {
-            Connection conn = DriverManager.getConnection(url, username, password);
-            String lockSql = "LOCK TABLES tbldelivery READ;";
-            String sqlQuery = "SELECT tracking_number, order_number, partner_tracking_number, events, status, dtime_entered, last_events ,transit_time ,carrier_code " +
-                    "FROM tbldelivery WHERE tracking_number = ?;";
-            String unlockSql = "UNLOCK TABLES;";
-            PreparedStatement lock = conn.prepareStatement(lockSql);
-            PreparedStatement statement = conn.prepareStatement(sqlQuery);
-            PreparedStatement unlock = conn.prepareStatement(unlockSql);
-            lock.execute();
-            statement.setString(1, trackingNumber);
-            ResultSet resultSet = statement.executeQuery();
-            while (resultSet.next()) {
-                delivery.setTrackingNumber(resultSet.getString("tracking_number"));
-                delivery.setEvents(resultSet.getString("events"));
-                delivery.setStatus(resultSet.getString("status"));
-                delivery.setDtimeEntered(resultSet.getDate("dtime_entered"));
-                delivery.setWhoEntered(resultSet.getString("who_entered"));
-            }
-            unlock.execute();
-            conn.close();
-        } catch (SQLException e) {
-            System.err.println(e.getMessage());
-        }
-        return delivery;
     }
 }

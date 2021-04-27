@@ -22,12 +22,4 @@ public class DeliveryService {
     public String findStatusByTrackingNumber(String trackingNumber) {
         return deliveryRepository.findStatusByTrackingNumber(trackingNumber);
     }
-
-    public List<String> findAllTrackingNumber() {
-        return deliveryRepository.findAllTrackingNumber();
-    }
-
-    public TBLDelivery findOne(String trackingNumber) {
-        return deliveryRepository.findOne(trackingNumber);
-    }
 }
