@@ -4,8 +4,6 @@ import com.printway.entityDB.TBLDelivery;
 import com.printway.repository.DeliveryRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
 public class DeliveryService {
 

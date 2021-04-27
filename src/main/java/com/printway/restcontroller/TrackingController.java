@@ -17,7 +17,7 @@ public class TrackingController {
     @RequestMapping(value = "save", method = RequestMethod.GET)
     public ResponseEntity<?> saveShipment() {
         try {
-            trackingmoreAPI.check2();
+            trackingmoreAPI.saveAPI();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -28,7 +28,7 @@ public class TrackingController {
     @RequestMapping(value = "update", method = RequestMethod.GET)
     public ResponseEntity<?> updateDelivery() {
         try {
-            trackingmoreAPI.check();
+            trackingmoreAPI.updateAPI();
         } catch (Exception e) {
             e.printStackTrace();
         }

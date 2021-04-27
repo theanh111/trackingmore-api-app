@@ -1,6 +1,5 @@
 package com.printway.api;
 
-
 import com.printway.entityDB.TBLDelivery;
 import com.printway.entityDB.TBLNewTracking;
 import com.printway.service.DeliveryService;
@@ -39,7 +38,7 @@ public class TrackingmoreAPI {
     private DeliveryService deliveryService = new DeliveryService();
     private NewTrackingService newTrackingService = new NewTrackingService();
 
-    public void check2() {
+    public void saveAPI() {
         try {
             List<TBLNewTracking> listNewTracking = newTrackingService.findAll();
             for (int i = 0; i < listNewTracking.size(); i++) {
@@ -65,7 +64,7 @@ public class TrackingmoreAPI {
         }
     }
 
-    public void check() {
+    public void updateAPI() {
         try {
             List<TBLNewTracking> listNewTracking = newTrackingService.findAll();
             for (int i = 0; i < listNewTracking.size(); i++) {
@@ -214,50 +213,58 @@ public class TrackingmoreAPI {
     }
 
     public void checkTrackingInfoToSave(JSONObject responseObj, String trackingNumber, String orderId, String partnerTrackingNumber, Date dateCurrent) {
-        JSONObject dataObj = new JSONObject(responseObj.get("data").toString());
-        JSONObject originObj = new JSONObject(dataObj.get("origin_info").toString());
-        JSONObject destinationObj = new JSONObject(dataObj.get("destination_info").toString());
-        boolean originTrackinfoIsNull = originObj.get("trackinfo") == JSONObject.NULL;
-        boolean destinationTrackinfoIsNull = destinationObj.get("trackinfo") == JSONObject.NULL;
-        if (!originTrackinfoIsNull && !destinationTrackinfoIsNull) {
-            insertBothEvent(dataObj, originObj, destinationObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
-        }
-        if (originTrackinfoIsNull && !destinationTrackinfoIsNull
-                || !originTrackinfoIsNull && destinationTrackinfoIsNull) {
-            System.out.println(" -- ORIGIN or DESTINATION TrackInfo Is Null --");
-            if (!originTrackinfoIsNull && destinationTrackinfoIsNull) {
-                insertOriginEvent(dataObj, originObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
+        try {
+            JSONObject dataObj = new JSONObject(responseObj.get("data").toString());
+            JSONObject originObj = new JSONObject(dataObj.get("origin_info").toString());
+            JSONObject destinationObj = new JSONObject(dataObj.get("destination_info").toString());
+            boolean originTrackinfoIsNull = originObj.get("trackinfo") == JSONObject.NULL;
+            boolean destinationTrackinfoIsNull = destinationObj.get("trackinfo") == JSONObject.NULL;
+            if (!originTrackinfoIsNull && !destinationTrackinfoIsNull) {
+                insertBothEvent(dataObj, originObj, destinationObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
             }
-            if (!destinationTrackinfoIsNull && originTrackinfoIsNull) {
-                insertDestinationEvent(dataObj, originObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
+            if (originTrackinfoIsNull && !destinationTrackinfoIsNull
+                    || !originTrackinfoIsNull && destinationTrackinfoIsNull) {
+                System.out.println(" -- ORIGIN or DESTINATION TrackInfo Is Null --");
+                if (!originTrackinfoIsNull && destinationTrackinfoIsNull) {
+                    insertOriginEvent(dataObj, originObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
+                }
+                if (!destinationTrackinfoIsNull && originTrackinfoIsNull) {
+                    insertDestinationEvent(dataObj, originObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
+                }
             }
-        }
-        if (originTrackinfoIsNull && destinationTrackinfoIsNull) {
-            insertBothEvent(dataObj, originObj, destinationObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
+            if (originTrackinfoIsNull && destinationTrackinfoIsNull) {
+                insertBothEvent(dataObj, originObj, destinationObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
     public void checkTrackingInfoToUpdate(JSONObject responseObj, String trackingNumber, String orderId, String partnerTrackingNumber, Date dateCurrent) {
-        JSONObject dataObj = new JSONObject(responseObj.get("data").toString());
-        JSONObject originObj = new JSONObject(dataObj.get("origin_info").toString());
-        JSONObject destinationObj = new JSONObject(dataObj.get("destination_info").toString());
-        boolean originTrackinfoIsNull = originObj.get("trackinfo") == JSONObject.NULL;
-        boolean destinationTrackinfoIsNull = destinationObj.get("trackinfo") == JSONObject.NULL;
-        if (!originTrackinfoIsNull && !destinationTrackinfoIsNull) {
-            updateBothEvent(dataObj, originObj, destinationObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
-        }
-        if (originTrackinfoIsNull && !destinationTrackinfoIsNull
-                || !originTrackinfoIsNull && destinationTrackinfoIsNull) {
-            System.out.println(" -- ORIGIN or DESTINATION TrackInfo Is Null --");
-            if (!originTrackinfoIsNull && destinationTrackinfoIsNull) {
-                updateOriginEvent(dataObj, originObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
+        try {
+            JSONObject dataObj = new JSONObject(responseObj.get("data").toString());
+            JSONObject originObj = new JSONObject(dataObj.get("origin_info").toString());
+            JSONObject destinationObj = new JSONObject(dataObj.get("destination_info").toString());
+            boolean originTrackinfoIsNull = originObj.get("trackinfo") == JSONObject.NULL;
+            boolean destinationTrackinfoIsNull = destinationObj.get("trackinfo") == JSONObject.NULL;
+            if (!originTrackinfoIsNull && !destinationTrackinfoIsNull) {
+                updateBothEvent(dataObj, originObj, destinationObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
             }
-            if (!destinationTrackinfoIsNull && originTrackinfoIsNull) {
-                updateDestinationEvent(dataObj, originObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
+            if (originTrackinfoIsNull && !destinationTrackinfoIsNull
+                    || !originTrackinfoIsNull && destinationTrackinfoIsNull) {
+                System.out.println(" -- ORIGIN or DESTINATION TrackInfo Is Null --");
+                if (!originTrackinfoIsNull && destinationTrackinfoIsNull) {
+                    updateOriginEvent(dataObj, originObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
+                }
+                if (!destinationTrackinfoIsNull && originTrackinfoIsNull) {
+                    updateDestinationEvent(dataObj, originObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
+                }
             }
-        }
-        if (originTrackinfoIsNull && destinationTrackinfoIsNull) {
-            updateBothEvent(dataObj, originObj, destinationObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
+            if (originTrackinfoIsNull && destinationTrackinfoIsNull) {
+                updateBothEvent(dataObj, originObj, destinationObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
