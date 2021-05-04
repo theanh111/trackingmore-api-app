@@ -38,6 +38,7 @@ public class Application {
             ConfigurableApplicationContext ctx = SpringApplication.run(Application.class, args);
             TrackingmoreAPI trackingmoreAPI = new TrackingmoreAPI();
             trackingmoreAPI.getTrackingInfo();
+            System.out.println("** DONE **");
             int exitCode = SpringApplication.exit(ctx, new ExitCodeGenerator() {
                 @Override
                 public int getExitCode() {

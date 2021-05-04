@@ -32,7 +32,7 @@ public class NewTrackingRepository {
             String sqlQuery = "SELECT order_id, tracking_number, partner_tracking_number " +
                     "FROM tblnewtracking WHERE shipped = 1 " +
                     "AND partner_tracking_number IS NOT NULL " +
-                    "AND LENGT(partner_tracking_number) > 0;";
+                    "AND LENGTH(partner_tracking_number) > 0;";
             PreparedStatement statement = conn.prepareStatement(sqlQuery);
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
