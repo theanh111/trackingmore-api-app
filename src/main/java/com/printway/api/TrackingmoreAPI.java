@@ -217,7 +217,12 @@ public class TrackingmoreAPI {
             JSONObject dataObj = new JSONObject(responseObj.get("data").toString());
             JSONObject originObj = new JSONObject(dataObj.get("origin_info").toString());
             JSONObject destinationObj = new JSONObject(dataObj.get("destination_info").toString());
-            boolean originTrackinfoIsNull = originObj.get("trackinfo") == JSONObject.NULL;
+
+//            originObj.has("trackinfo") &&
+
+//            destinationObj.has("trackinfo") &&
+
+            boolean originTrackinfoIsNull =  originObj.get("trackinfo") == JSONObject.NULL;
             boolean destinationTrackinfoIsNull = destinationObj.get("trackinfo") == JSONObject.NULL;
             if (!originTrackinfoIsNull && !destinationTrackinfoIsNull) {
                 insertBothEvent(dataObj, originObj, destinationObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
