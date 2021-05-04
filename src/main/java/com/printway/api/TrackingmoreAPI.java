@@ -19,7 +19,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -40,14 +39,7 @@ public class TrackingmoreAPI {
 
     public void getTrackingInfo() {
         try {
-//            TBLNewTracking tblNewTracking = new TBLNewTracking();
-//            tblNewTracking.setOrderId("89C2377");
-//            tblNewTracking.setPartnerTrackingNumber("420617619374869903506528209414");
-//            tblNewTracking.setTrackingNumber("MULSXV13496049ngx5mr4");
-//            tblNewTracking.setShipped(1);
             List<TBLNewTracking> listNewTracking = newTrackingService.findAll();
-//            List<TBLNewTracking> listNewTracking = new ArrayList<>();
-//            listNewTracking.add(tblNewTracking);
             System.out.println("- Total: " + listNewTracking.size());
             for (int i = 0; i < listNewTracking.size(); i++) {
                 String tblDeliveryStatus = deliveryService.findStatusByTrackingNumber(listNewTracking.get(i).getPartnerTrackingNumber());
@@ -57,7 +49,6 @@ public class TrackingmoreAPI {
                     getTrackingResult(carrierCode, tblDeliveryStatus, listNewTracking.get(i));
                 }
                 if (tblDeliveryStatus != null && !tblDeliveryStatus.equals("delivered") && !tblDeliveryStatus.equals("notfound")) {
-                    System.out.println("- Status: " + tblDeliveryStatus + " - " + listNewTracking.get(i).getPartnerTrackingNumber());
                     String carrierCode = getTrackingCarrier(listNewTracking.get(i).getPartnerTrackingNumber());
                     getTrackingResult(carrierCode, tblDeliveryStatus, listNewTracking.get(i));
                 }
@@ -153,27 +144,25 @@ public class TrackingmoreAPI {
 
     public void checkTrackingInfoToSave(JSONObject responseObj, String trackingNumber, String orderId, String partnerTrackingNumber, Date dateCurrent) {
         try {
-            if (responseObj.has("data")) {
-                JSONObject dataObj = new JSONObject(responseObj.get("data").toString());
-                JSONObject originObj = new JSONObject(dataObj.get("origin_info").toString());
-                JSONObject destinationObj = new JSONObject(dataObj.get("destination_info").toString());
-                boolean originTrackinfoIsNull = originObj.get("trackinfo") == JSONObject.NULL;
-                boolean destinationTrackinfoIsNull = destinationObj.get("trackinfo") == JSONObject.NULL;
-                if (!originTrackinfoIsNull && !destinationTrackinfoIsNull) {
-                    insertBothEvent(dataObj, originObj, destinationObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
+            JSONObject dataObj = new JSONObject(responseObj.get("data").toString());
+            JSONObject originObj = new JSONObject(dataObj.get("origin_info").toString());
+            JSONObject destinationObj = new JSONObject(dataObj.get("destination_info").toString());
+            boolean originTrackinfoIsNull = originObj.get("trackinfo") == JSONObject.NULL;
+            boolean destinationTrackinfoIsNull = destinationObj.get("trackinfo") == JSONObject.NULL;
+            if (!originTrackinfoIsNull && !destinationTrackinfoIsNull) {
+                insertBothEvent(dataObj, originObj, destinationObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
+            }
+            if (originTrackinfoIsNull && !destinationTrackinfoIsNull
+                    || !originTrackinfoIsNull && destinationTrackinfoIsNull) {
+                if (!originTrackinfoIsNull) {
+                    insertOriginEvent(dataObj, originObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
                 }
-                if (originTrackinfoIsNull && !destinationTrackinfoIsNull
-                        || !originTrackinfoIsNull && destinationTrackinfoIsNull) {
-                    if (!originTrackinfoIsNull) {
-                        insertOriginEvent(dataObj, originObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
-                    }
-                    if (!destinationTrackinfoIsNull) {
-                        insertDestinationEvent(dataObj, destinationObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
-                    }
+                if (!destinationTrackinfoIsNull) {
+                    insertDestinationEvent(dataObj, destinationObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
                 }
-                if (originTrackinfoIsNull && destinationTrackinfoIsNull) {
-                    insertBothEvent(dataObj, originObj, destinationObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
-                }
+            }
+            if (originTrackinfoIsNull && destinationTrackinfoIsNull) {
+                insertBothEvent(dataObj, originObj, destinationObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -272,7 +261,7 @@ public class TrackingmoreAPI {
                 } else {
                     carrierCode = dataObj.getString("carrier_code");
                 }
-                if (dataObj.get("lastEvent").equals("")) {
+                if (dataObj.get("lastEvent") == JSONObject.NULL || dataObj.get("lastEvent").equals("")) {
                     lastEvent = "No Info";
                 } else {
                     lastEvent = dataObj.getString("lastEvent");
