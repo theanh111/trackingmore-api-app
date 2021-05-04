@@ -32,54 +32,22 @@ public class TrackingmoreAPI {
     private final String DETECT_COURIER = "/v2/carriers/detect";
     private final String CREATE_TRACKING = "/v2/trackings/post";
     private final String GET_RESULT = "/v2/trackings/";
-    private final String[] CARRIERS = {"dhl", "ups", "usps", "dhlglobalmail"};
+    private final String[] CARRIERS = {"dhl", "ups", "usps", "dhlglobalmail", "fedex", "dhl-germany", "dhl-poland", "dhl-es"};
 
     private TBLDelivery tblDeliveryObj = new TBLDelivery();
     private DeliveryService deliveryService = new DeliveryService();
     private NewTrackingService newTrackingService = new NewTrackingService();
 
-    public void saveAPI() {
+    public void getTrackingInfo() {
         try {
             List<TBLNewTracking> listNewTracking = newTrackingService.findAll();
             for (int i = 0; i < listNewTracking.size(); i++) {
-                System.out.println(i + ") == TBLNEWTRACKING == [ orderId = "
-                        + listNewTracking.get(i).getOrderId()
-                        + " ], [ partnerTrackingNumber = "
-                        + listNewTracking.get(i).getPartnerTrackingNumber()
-                        + " ], [ trackingNumber = "
-                        + listNewTracking.get(i).getTrackingNumber()
-                        + " ]"
-                );
-            }
-            System.out.println("--------------------------------------------");
-            for (int i = 0; i < listNewTracking.size(); i++) {
+                System.out.println("- Total: " + listNewTracking.size());
                 String tblDeliveryStatus = deliveryService.findStatusByTrackingNumber(listNewTracking.get(i).getPartnerTrackingNumber());
                 if (tblDeliveryStatus == null) {
                     String carrierCode = getTrackingCarrier(listNewTracking.get(i).getPartnerTrackingNumber());
-                    save(carrierCode, listNewTracking.get(i));
+                    getTrackingResult(carrierCode, listNewTracking.get(i));
                 }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void updateAPI() {
-        try {
-            List<TBLNewTracking> listNewTracking = newTrackingService.findAll();
-            for (int i = 0; i < listNewTracking.size(); i++) {
-                System.out.println(i + ") == TBLNEWTRACKING == [ orderId = "
-                        + listNewTracking.get(i).getOrderId()
-                        + " ], [ partnerTrackingNumber = "
-                        + listNewTracking.get(i).getPartnerTrackingNumber()
-                        + " ], [ trackingNumber = "
-                        + listNewTracking.get(i).getTrackingNumber()
-                        + " ]"
-                );
-            }
-            System.out.println("--------------------------------------------");
-            for (int i = 0; i < listNewTracking.size(); i++) {
-                String tblDeliveryStatus = deliveryService.findStatusByTrackingNumber(listNewTracking.get(i).getPartnerTrackingNumber());
                 if (tblDeliveryStatus != null && !tblDeliveryStatus.equals("delivered") && !tblDeliveryStatus.equals("notfound")) {
                     String carrierCode = getTrackingCarrier(listNewTracking.get(i).getPartnerTrackingNumber());
                     getTrackingResult(carrierCode, listNewTracking.get(i));
@@ -87,38 +55,7 @@ public class TrackingmoreAPI {
             }
         } catch (Exception e) {
             e.printStackTrace();
-        }
-
-    }
-
-    public void save(String carrier, TBLNewTracking tblNewTracking) {
-        try {
-            Date dateCurrent = new Date(System.currentTimeMillis());
-            String trackingNumber = tblNewTracking.getPartnerTrackingNumber();
-            String partnerTrackingNumber = tblNewTracking.getTrackingNumber();
-            String orderId = tblNewTracking.getOrderId();
-            String statusTBLDelivery = deliveryService.findStatusByTrackingNumber(trackingNumber);
-            System.out.println("TBL Delivery Status: " + statusTBLDelivery);
-            System.out.println("== Getting Result: " + trackingNumber);
-            CloseableHttpClient client = HttpClients.createDefault();
-            HttpGet httpGet = new HttpGet(TRACKING_MORE_API + GET_RESULT + carrier + "/" + trackingNumber);
-            httpGet.setHeader(HEADER_KEY, APP_KEY);
-            HttpResponse httpResponse = client.execute(httpGet);
-            HttpEntity entity = httpResponse.getEntity();
-            String result = EntityUtils.toString(entity);
-            JSONObject responseObj = new JSONObject(result);
-            JSONObject metaObject = new JSONObject(responseObj.get("meta").toString());
-            if (Integer.parseInt(metaObject.get("code").toString()) == 4031) {
-                createTracking(trackingNumber, carrier);
-                client.close();
-            }
-            if (Integer.parseInt(metaObject.get("code").toString()) == 200) {
-                if (statusTBLDelivery == null) {
-                    checkTrackingInfoToSave(responseObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+            System.exit(0);
         }
     }
 
@@ -140,7 +77,7 @@ public class TrackingmoreAPI {
             JSONObject responseObj = new JSONObject(result);
             JSONObject metaObject = new JSONObject(responseObj.get("meta").toString());
             if (Integer.parseInt(metaObject.get("code").toString()) == 4031) {
-                createTracking(trackingNumber, carrier);
+                createTrackingOnTrackingMore(trackingNumber, carrier);
                 client.close();
             }
             if (Integer.parseInt(metaObject.get("code").toString()) == 200) {
@@ -155,10 +92,11 @@ public class TrackingmoreAPI {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            System.exit(0);
         }
     }
 
-    public void createTracking(String trackingNumber, String carrierCode) {
+    public void createTrackingOnTrackingMore(String trackingNumber, String carrierCode) {
         try {
             CloseableHttpClient client = HttpClients.createDefault();
             HttpPost httpPost = new HttpPost(TRACKING_MORE_API + CREATE_TRACKING);
@@ -168,18 +106,16 @@ public class TrackingmoreAPI {
             httpPost.setEntity(new StringEntity(payload.toString(), ContentType.APPLICATION_JSON));
             httpPost.setHeader(HEADER_KEY, APP_KEY);
             client.execute(httpPost);
-            System.out.println("=== POST [" + trackingNumber + " ] TRACKING TO TRACKING MORE ===");
-            System.out.println("--------------------------------------------");
             client.close();
         } catch (Exception e) {
             e.printStackTrace();
+            System.exit(0);
         }
     }
 
     public String getTrackingCarrier(String trackingNumber) {
-        String carrierCode = "";
+        String carrierCode = null;
         try {
-            System.out.println("== Getting Tracking Carrier: " + trackingNumber);
             CloseableHttpClient client = HttpClients.createDefault();
             HttpPost httpPost = new HttpPost(TRACKING_MORE_API + DETECT_COURIER);
             JSONObject payload = new JSONObject();
@@ -196,18 +132,14 @@ public class TrackingmoreAPI {
                 for (int i = 0; i < jsonArray.length(); i++) {
                     list.add(jsonArray.getJSONObject(i));
                     JSONObject carrier = new JSONObject(jsonArray.getJSONObject(i).toString());
-                    String carrier_code = carrier.get("code").toString();
-                    for (int j = 0; j < CARRIERS.length; j++) {
-                        if (CARRIERS[j].equals("dhlglobalmail") && carrier_code.equals(CARRIERS[j])) {
-                            carrierCode = "dhlglobalmail";
-                        }
-                    }
+                    carrierCode = carrier.get("code").toString();
                 }
             }
             client.close();
             return carrierCode;
         } catch (Exception e) {
             e.printStackTrace();
+            System.exit(0);
         }
         return carrierCode;
     }
@@ -217,19 +149,13 @@ public class TrackingmoreAPI {
             JSONObject dataObj = new JSONObject(responseObj.get("data").toString());
             JSONObject originObj = new JSONObject(dataObj.get("origin_info").toString());
             JSONObject destinationObj = new JSONObject(dataObj.get("destination_info").toString());
-
-//            originObj.has("trackinfo") &&
-
-//            destinationObj.has("trackinfo") &&
-
-            boolean originTrackinfoIsNull =  originObj.get("trackinfo") == JSONObject.NULL;
+            boolean originTrackinfoIsNull = originObj.get("trackinfo") == JSONObject.NULL;
             boolean destinationTrackinfoIsNull = destinationObj.get("trackinfo") == JSONObject.NULL;
             if (!originTrackinfoIsNull && !destinationTrackinfoIsNull) {
                 insertBothEvent(dataObj, originObj, destinationObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
             }
             if (originTrackinfoIsNull && !destinationTrackinfoIsNull
                     || !originTrackinfoIsNull && destinationTrackinfoIsNull) {
-                System.out.println(" -- ORIGIN or DESTINATION TrackInfo Is Null --");
                 if (!originTrackinfoIsNull && destinationTrackinfoIsNull) {
                     insertOriginEvent(dataObj, originObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
                 }
@@ -242,6 +168,7 @@ public class TrackingmoreAPI {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            System.exit(0);
         }
     }
 
@@ -257,11 +184,10 @@ public class TrackingmoreAPI {
             }
             if (originTrackinfoIsNull && !destinationTrackinfoIsNull
                     || !originTrackinfoIsNull && destinationTrackinfoIsNull) {
-                System.out.println(" -- ORIGIN or DESTINATION TrackInfo Is Null --");
-                if (!originTrackinfoIsNull && destinationTrackinfoIsNull) {
+                if (!originTrackinfoIsNull) {
                     updateOriginEvent(dataObj, originObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
                 }
-                if (!destinationTrackinfoIsNull && originTrackinfoIsNull) {
+                if (!destinationTrackinfoIsNull) {
                     updateDestinationEvent(dataObj, originObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
                 }
             }
@@ -270,53 +196,8 @@ public class TrackingmoreAPI {
             }
         } catch (Exception e) {
             e.printStackTrace();
+            System.exit(0);
         }
-    }
-
-    public void insertBothEvent(JSONObject dataObj, JSONObject originObj, JSONObject destinationObj, String trackingNumber, String orderId, String partnerTrackingNumber, Date dateCurrent) {
-        TBLDelivery tblDelivery = getBothEvent(dataObj, originObj, destinationObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
-        deliveryService.insert(tblDelivery);
-        System.out.println("*** INSERTED TO DB ***");
-        System.out.println("--------------------------------------------");
-    }
-
-    public void insertOriginEvent(JSONObject dataObj, JSONObject originObj, String trackingNumber, String orderId, String partnerTrackingNumber, Date dateCurrent) {
-        System.out.println("destinationObj TrackInfo NULL == SAVE originObj");
-        TBLDelivery tblDelivery = getOriginEvent(dataObj, originObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
-        deliveryService.insert(tblDelivery);
-        System.out.println("*** INSERTED TO DB [Save Only ORIGIN]  ***");
-        System.out.println("--------------------------------------------");
-    }
-
-    public void insertDestinationEvent(JSONObject dataObj, JSONObject destinationObj, String trackingNumber, String orderId, String partnerTrackingNumber, Date dateCurrent) {
-        System.out.println("originObj TrackInfo NULL == SAVE destinationObj");
-        TBLDelivery tblDelivery = getDestinationEvent(dataObj, destinationObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
-        deliveryService.insert(tblDelivery);
-        System.out.println("*** INSERTED TO DB [Save Only DESTINATION]  ***");
-        System.out.println("--------------------------------------------");
-    }
-
-    public void updateBothEvent(JSONObject dataObj, JSONObject originObj, JSONObject destinationObj, String trackingNumber, String orderId, String partnerTrackingNumber, Date dateCurrent) {
-        TBLDelivery tblDelivery = getBothEvent(dataObj, originObj, destinationObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
-        deliveryService.update(tblDelivery);
-        System.out.println("*** UPDATE TO DB ***");
-        System.out.println("--------------------------------------------");
-    }
-
-    public void updateOriginEvent(JSONObject dataObj, JSONObject originObj, String trackingNumber, String orderId, String partnerTrackingNumber, Date dateCurrent) {
-        System.out.println("destinationObj TrackInfo NULL == SAVE originObj");
-        TBLDelivery tblDelivery = getOriginEvent(dataObj, originObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
-        deliveryService.update(tblDelivery);
-        System.out.println("*** UPDATE TO DB [UPDATE Only ORIGIN]  ***");
-        System.out.println("--------------------------------------------");
-    }
-
-    public void updateDestinationEvent(JSONObject dataObj, JSONObject destinationObj, String trackingNumber, String orderId, String partnerTrackingNumber, Date dateCurrent) {
-        System.out.println("originObj TrackInfo NULL == SAVE destinationObj");
-        TBLDelivery tblDelivery = getDestinationEvent(dataObj, destinationObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
-        deliveryService.update(tblDelivery);
-        System.out.println("*** UPDATE TO DB [UPDATE Only DESTINATION]  ***");
-        System.out.println("--------------------------------------------");
     }
 
     public TBLDelivery getOriginEvent(JSONObject dataObj, JSONObject originObj, String trackingNumber, String orderId, String partnerTrackingNumber, Date dateCurrent) {
@@ -327,28 +208,17 @@ public class TrackingmoreAPI {
         String status = "";
         String transitTime = "";
         String lastEvent = "";
-        String carrierCodeOrigin = "";
         try {
             carrierCode = dataObj.getString("carrier_code");
             status = dataObj.getString("status");
             transitTime = dataObj.getString("itemTimeLength");
             lastEvent = dataObj.getString("lastEvent");
-            carrierCodeOrigin = originObj.getString("carrier_code");
-            System.out.println(" - Status: " + status);
-            System.out.println(" - Transit Time: " + transitTime);
-            System.out.println(" - Carrier Code: " + carrierCode);
-            System.out.println();
-            System.out.println("** Origin - Tracking Info **");
-            System.out.println(" - [Origin] Carrier Code: " + carrierCodeOrigin);
-            System.out.println(" - [Origin] Tracking Info: ");
-            for (int i = 0; i < originArray.length(); i++) {
-                System.out.println(originArray.getJSONObject(i));
-            }
-            System.out.println(" - Last Event: " + lastEvent);
+            return tblDeliveryObj.createDeliveryObject(trackingNumber, orderId, partnerTrackingNumber, events.toString(), status, dateCurrent, lastEvent, transitTime, carrierCode);
         } catch (JSONException jsonException) {
-            System.out.println("JSON error");
+            jsonException.printStackTrace();
+            System.exit(0);
         }
-        return tblDeliveryObj.createDeliveryObject(trackingNumber, orderId, partnerTrackingNumber, events.toString(), status, dateCurrent, lastEvent, transitTime, carrierCode);
+        return null;
     }
 
     public TBLDelivery getDestinationEvent(JSONObject dataObj, JSONObject destinationObj, String trackingNumber, String orderId, String partnerTrackingNumber, Date dateCurrent) {
@@ -359,30 +229,17 @@ public class TrackingmoreAPI {
         String status = "";
         String transitTime = "";
         String lastEvent = "";
-        String carrierCodeDestination = "";
         try {
             carrierCode = dataObj.getString("carrier_code");
             status = dataObj.getString("status");
             transitTime = dataObj.getString("itemTimeLength");
             lastEvent = dataObj.getString("lastEvent");
-            carrierCodeDestination = destinationObj.getString("carrier_code");
-
-            System.out.println(" - Status: " + status);
-            System.out.println(" - Transit Time: " + transitTime);
-            System.out.println(" - Carrier Code: " + carrierCode);
-            System.out.println();
-            System.out.println(" ** Destination - Tracking Info ** ");
-            System.out.println(" - [Destination] Carrier Code : " + carrierCodeDestination);
-            System.out.println(" - [Destination] Tracking Info : ");
-            for (int i = 0; i < destinationArray.length(); i++) {
-                System.out.println(destinationArray.getJSONObject(i));
-            }
-            System.out.println();
-            System.out.println(" - Last Event: " + lastEvent);
+            return tblDeliveryObj.createDeliveryObject(trackingNumber, orderId, partnerTrackingNumber, events.toString(), status, dateCurrent, lastEvent, transitTime, carrierCode);
         } catch (JSONException jsonException) {
-            System.out.println("JSON error");
+            jsonException.printStackTrace();
+            System.exit(0);
         }
-        return tblDeliveryObj.createDeliveryObject(trackingNumber, orderId, partnerTrackingNumber, events.toString(), status, dateCurrent, lastEvent, transitTime, carrierCode);
+        return null;
     }
 
     public TBLDelivery getBothEvent(JSONObject dataObj, JSONObject originObj, JSONObject destinationObj, String trackingNumber, String orderId, String partnerTrackingNumber, Date dateCurrent) {
@@ -412,14 +269,10 @@ public class TrackingmoreAPI {
                     lastEvent = dataObj.getString("lastEvent");
                 }
                 status = dataObj.getString("status");
-                System.out.println(" - Status: " + status);
-                System.out.println(" - Transit Time: " + transitTime);
-                System.out.println(" - Carrier Code: " + carrierCode);
-                System.out.println(" - ORIGIN and DESTINATION NULL");
-                System.out.println(" - Last Event: " + lastEvent);
                 tblDelivery = tblDeliveryObj.createDeliveryObject(trackingNumber, orderId, partnerTrackingNumber, events.toString(), status, dateCurrent, lastEvent, transitTime, carrierCode);
             } catch (JSONException jsonException) {
-                System.out.println("JSON error");
+                jsonException.printStackTrace();
+                System.exit(0);
             }
         }
         if (!originTrackinfoIsNull && !destinationTrackinfoIsNull) {
@@ -431,40 +284,57 @@ public class TrackingmoreAPI {
             String status = "";
             String transitTime = "";
             String lastEvent = "";
-            String carrierCodeOrigin = "";
-            String carrierCodeDestination = "";
             try {
                 carrierCode = dataObj.getString("carrier_code");
                 status = dataObj.getString("status");
                 transitTime = dataObj.getString("itemTimeLength");
                 lastEvent = dataObj.getString("lastEvent");
-                carrierCodeOrigin = originObj.getString("carrier_code");
-                carrierCodeDestination = destinationObj.getString("carrier_code");
-
-                System.out.println(" - Status: " + status);
-                System.out.println(" - Transit Time: " + transitTime);
-                System.out.println(" - Carrier Code: " + carrierCode);
-                System.out.println();
-                System.out.println("** Origin - Tracking Info **");
-                System.out.println(" - [Origin] Carrier Code: " + carrierCodeOrigin);
-                System.out.println(" - [Origin] Tracking Info: ");
                 for (int i = 0; i < originArray.length(); i++) {
                     System.out.println(originArray.getJSONObject(i));
                 }
-                System.out.println();
-                System.out.println("** Destination - Tracking Info **");
-                System.out.println(" - [Destination] Carrier Code: " + carrierCodeDestination);
-                System.out.println(" - [Destination] Tracking Info: ");
                 for (int i = 0; i < destinationArray.length(); i++) {
                     System.out.println(destinationArray.getJSONObject(i));
                 }
-                System.out.println();
-                System.out.println(" - Last Event: " + lastEvent);
                 tblDelivery = tblDeliveryObj.createDeliveryObject(trackingNumber, orderId, partnerTrackingNumber, events.toString(), status, dateCurrent, lastEvent, transitTime, carrierCode);
             } catch (JSONException jsonException) {
-                System.out.println("JSON error");
+                jsonException.printStackTrace();
+                System.exit(0);
             }
         }
         return tblDelivery;
+    }
+
+    public void insertBothEvent(JSONObject dataObj, JSONObject originObj, JSONObject destinationObj, String trackingNumber, String orderId, String partnerTrackingNumber, Date dateCurrent) {
+        TBLDelivery tblDelivery = getBothEvent(dataObj, originObj, destinationObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
+        deliveryService.insert(tblDelivery);
+    }
+
+    public void insertOriginEvent(JSONObject dataObj, JSONObject originObj, String trackingNumber, String orderId, String partnerTrackingNumber, Date dateCurrent) {
+        System.out.println("destinationObj TrackInfo NULL == SAVE originObj");
+        TBLDelivery tblDelivery = getOriginEvent(dataObj, originObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
+        deliveryService.insert(tblDelivery);
+    }
+
+    public void insertDestinationEvent(JSONObject dataObj, JSONObject destinationObj, String trackingNumber, String orderId, String partnerTrackingNumber, Date dateCurrent) {
+        System.out.println("originObj TrackInfo NULL == SAVE destinationObj");
+        TBLDelivery tblDelivery = getDestinationEvent(dataObj, destinationObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
+        deliveryService.insert(tblDelivery);
+    }
+
+    public void updateBothEvent(JSONObject dataObj, JSONObject originObj, JSONObject destinationObj, String trackingNumber, String orderId, String partnerTrackingNumber, Date dateCurrent) {
+        TBLDelivery tblDelivery = getBothEvent(dataObj, originObj, destinationObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
+        deliveryService.update(tblDelivery);
+    }
+
+    public void updateOriginEvent(JSONObject dataObj, JSONObject originObj, String trackingNumber, String orderId, String partnerTrackingNumber, Date dateCurrent) {
+        System.out.println("destinationObj TrackInfo NULL == SAVE originObj");
+        TBLDelivery tblDelivery = getOriginEvent(dataObj, originObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
+        deliveryService.update(tblDelivery);
+    }
+
+    public void updateDestinationEvent(JSONObject dataObj, JSONObject destinationObj, String trackingNumber, String orderId, String partnerTrackingNumber, Date dateCurrent) {
+        System.out.println("originObj TrackInfo NULL == SAVE destinationObj");
+        TBLDelivery tblDelivery = getDestinationEvent(dataObj, destinationObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
+        deliveryService.update(tblDelivery);
     }
 }

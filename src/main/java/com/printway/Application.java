@@ -1,9 +1,12 @@
 package com.printway;
 
+import com.printway.api.TrackingmoreAPI;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.ExitCodeGenerator;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.AutoConfigurationPackage;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.context.annotation.PropertySources;
@@ -30,6 +33,28 @@ public class Application {
     }
 
     public static void main(String[] args) {
-        SpringApplication.run(Application.class, args);
+        try {
+            System.out.println("Tracking App Running...");
+            ConfigurableApplicationContext ctx = SpringApplication.run(Application.class, args);
+            TrackingmoreAPI trackingmoreAPI = new TrackingmoreAPI();
+            trackingmoreAPI.getTrackingInfo();
+            int exitCode = SpringApplication.exit(ctx, new ExitCodeGenerator() {
+                @Override
+                public int getExitCode() {
+                    return 0;
+                }
+            });
+            System.exit(exitCode);
+        } catch (Exception e) {
+            e.printStackTrace();
+            ConfigurableApplicationContext ctx = SpringApplication.run(Application.class, args);
+            int exitCode = SpringApplication.exit(ctx, new ExitCodeGenerator() {
+                @Override
+                public int getExitCode() {
+                    return 0;
+                }
+            });
+            System.exit(exitCode);
+        }
     }
 }
