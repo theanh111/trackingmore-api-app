@@ -1,6 +1,5 @@
 package com.printway.config;
 
-
 import java.io.Serializable;
 
 public class Database implements Serializable {

@@ -40,11 +40,9 @@ public class TrackingmoreAPI {
     public void getTrackingInfo() {
         try {
             List<TBLNewTracking> listNewTracking = newTrackingService.findAll();
-            System.out.println("- Total: " + listNewTracking.size());
             for (int i = 0; i < listNewTracking.size(); i++) {
                 String tblDeliveryStatus = deliveryService.findStatusByTrackingNumber(listNewTracking.get(i).getPartnerTrackingNumber());
                 if (tblDeliveryStatus == null) {
-                    System.out.println("- Status = null: " + listNewTracking.get(i).getPartnerTrackingNumber());
                     String carrierCode = getTrackingCarrier(listNewTracking.get(i).getPartnerTrackingNumber());
                     getTrackingResult(carrierCode, tblDeliveryStatus, listNewTracking.get(i));
                 }
