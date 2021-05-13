@@ -31,8 +31,7 @@ public class NewTrackingRepository {
             Connection conn = DriverManager.getConnection(url, username, password);
             String sqlQuery = "SELECT order_id, tracking_number, partner_tracking_number " +
                     "FROM tblnewtracking WHERE shipped = 1 " +
-                    "AND partner_tracking_number IS NOT NULL " +
-                    "AND LENGTH(partner_tracking_number) > 0;";
+                    "AND (LENGTH(partner_tracking_number) > 0 OR partner_tracking_number IS NOT NULL);";
             PreparedStatement statement = conn.prepareStatement(sqlQuery);
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {

@@ -42,21 +42,23 @@ public class TrackingmoreAPI {
             List<TBLNewTracking> listNewTracking = newTrackingService.findAll();
             System.out.println("** Total to scan: " + listNewTracking.size());
             for (int i = 0; i < listNewTracking.size(); i++) {
-                System.out.println(i + ") Order ID: " + listNewTracking.get(i).getOrderId() + " - Tracking Number: " + listNewTracking.get(i).getPartnerTrackingNumber());
-                String tblDeliveryStatus = deliveryService.findStatusByTrackingNumber(listNewTracking.get(i).getPartnerTrackingNumber());
-                if (tblDeliveryStatus == null) {
-                    String carrierCode = getTrackingCarrier(listNewTracking.get(i).getPartnerTrackingNumber());
-                    getTrackingResult(carrierCode, tblDeliveryStatus, listNewTracking.get(i));
+                try {
+                    String tblDeliveryStatus = deliveryService.findStatusByTrackingNumber(listNewTracking.get(i).getPartnerTrackingNumber());
+                    if (tblDeliveryStatus == null) {
+                        String carrierCode = getTrackingCarrier(listNewTracking.get(i).getPartnerTrackingNumber());
+                        getTrackingResult(carrierCode, tblDeliveryStatus, listNewTracking.get(i));
+                    }
+                    if (tblDeliveryStatus != null && !tblDeliveryStatus.equals("delivered") && !tblDeliveryStatus.equals("notfound")) {
+                        String carrierCode = getTrackingCarrier(listNewTracking.get(i).getPartnerTrackingNumber());
+                        getTrackingResult(carrierCode, tblDeliveryStatus, listNewTracking.get(i));
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    continue;
                 }
-                if (tblDeliveryStatus != null && !tblDeliveryStatus.equals("delivered") && !tblDeliveryStatus.equals("notfound")) {
-                    String carrierCode = getTrackingCarrier(listNewTracking.get(i).getPartnerTrackingNumber());
-                    getTrackingResult(carrierCode, tblDeliveryStatus, listNewTracking.get(i));
-                }
-                System.out.println();
             }
         } catch (Exception e) {
             e.printStackTrace();
-            System.exit(0);
         }
     }
 
@@ -90,7 +92,6 @@ public class TrackingmoreAPI {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            System.exit(0);
         }
     }
 
@@ -108,7 +109,6 @@ public class TrackingmoreAPI {
             System.out.println("- Created Tracking [" + trackingNumber + "] to Trackingmore.com");
         } catch (Exception e) {
             e.printStackTrace();
-            System.exit(0);
         }
     }
 
@@ -133,13 +133,18 @@ public class TrackingmoreAPI {
                     if (code.equals("dhlglobalmail")) {
                         carrierCode = "dhlglobalmail";
                     }
+                    if (code.equals("usps")) {
+                        carrierCode = "usps";
+                    }
+                    if (code.equals("dhl")) {
+                        carrierCode = "dhl";
+                    }
                 }
             }
             client.close();
             return carrierCode;
         } catch (Exception e) {
             e.printStackTrace();
-            System.exit(0);
         }
         return carrierCode;
     }
@@ -172,7 +177,6 @@ public class TrackingmoreAPI {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            System.exit(0);
         }
     }
 
@@ -204,7 +208,6 @@ public class TrackingmoreAPI {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            System.exit(0);
         }
     }
 
@@ -217,14 +220,29 @@ public class TrackingmoreAPI {
         String transitTime = "";
         String lastEvent = "";
         try {
-            carrierCode = dataObj.getString("carrier_code");
-            status = dataObj.getString("status");
-            transitTime = dataObj.getString("itemTimeLength");
-            lastEvent = dataObj.getString("lastEvent");
+            if (dataObj.get("itemTimeLength") != JSONObject.NULL) {
+                transitTime = dataObj.getString("itemTimeLength");
+            } else {
+                transitTime = "No Info";
+            }
+            if (dataObj.get("carrier_code") == JSONObject.NULL || dataObj.get("carrier_code").equals("")) {
+                carrierCode = "No Info";
+            } else {
+                carrierCode = dataObj.getString("carrier_code");
+            }
+            if (dataObj.get("lastEvent") == JSONObject.NULL || dataObj.get("lastEvent").equals("")) {
+                lastEvent = "No Info";
+            } else {
+                lastEvent = dataObj.getString("lastEvent");
+            }
+            if (dataObj.get("status") == JSONObject.NULL || dataObj.get("status").equals("")) {
+                status = "No Info";
+            } else {
+                status = dataObj.getString("status");
+            }
             return tblDeliveryObj.createDeliveryObject(trackingNumber, orderId, partnerTrackingNumber, events.toString(), status, dateCurrent, lastEvent, transitTime, carrierCode);
         } catch (JSONException jsonException) {
             jsonException.printStackTrace();
-            System.exit(0);
         }
         return null;
     }
@@ -238,14 +256,29 @@ public class TrackingmoreAPI {
         String transitTime = "";
         String lastEvent = "";
         try {
-            carrierCode = dataObj.getString("carrier_code");
-            status = dataObj.getString("status");
-            transitTime = dataObj.getString("itemTimeLength");
-            lastEvent = dataObj.getString("lastEvent");
+            if (dataObj.get("itemTimeLength") != JSONObject.NULL) {
+                transitTime = dataObj.getString("itemTimeLength");
+            } else {
+                transitTime = "No Info";
+            }
+            if (dataObj.get("carrier_code") == JSONObject.NULL || dataObj.get("carrier_code").equals("")) {
+                carrierCode = "No Info";
+            } else {
+                carrierCode = dataObj.getString("carrier_code");
+            }
+            if (dataObj.get("lastEvent") == JSONObject.NULL || dataObj.get("lastEvent").equals("")) {
+                lastEvent = "No Info";
+            } else {
+                lastEvent = dataObj.getString("lastEvent");
+            }
+            if (dataObj.get("status") == JSONObject.NULL || dataObj.get("status").equals("")) {
+                status = "No Info";
+            } else {
+                status = dataObj.getString("status");
+            }
             return tblDeliveryObj.createDeliveryObject(trackingNumber, orderId, partnerTrackingNumber, events.toString(), status, dateCurrent, lastEvent, transitTime, carrierCode);
         } catch (JSONException jsonException) {
             jsonException.printStackTrace();
-            System.exit(0);
         }
         return null;
     }
@@ -265,6 +298,8 @@ public class TrackingmoreAPI {
             try {
                 if (dataObj.get("itemTimeLength") != JSONObject.NULL) {
                     transitTime = dataObj.getString("itemTimeLength");
+                } else {
+                    transitTime = "No Info";
                 }
                 if (dataObj.get("carrier_code") == JSONObject.NULL || dataObj.get("carrier_code").equals("")) {
                     carrierCode = "No Info";
@@ -276,11 +311,15 @@ public class TrackingmoreAPI {
                 } else {
                     lastEvent = dataObj.getString("lastEvent");
                 }
-                status = dataObj.getString("status");
+                if (dataObj.get("status") == JSONObject.NULL || dataObj.get("status").equals("")) {
+                    status = "No Info";
+                } else {
+                    status = dataObj.getString("status");
+                }
+
                 tblDelivery = tblDeliveryObj.createDeliveryObject(trackingNumber, orderId, partnerTrackingNumber, events.toString(), status, dateCurrent, lastEvent, transitTime, carrierCode);
             } catch (JSONException jsonException) {
                 jsonException.printStackTrace();
-                System.exit(0);
             }
         }
         if (!originTrackinfoIsNull && !destinationTrackinfoIsNull) {
@@ -293,14 +332,29 @@ public class TrackingmoreAPI {
             String transitTime = "";
             String lastEvent = "";
             try {
-                carrierCode = dataObj.getString("carrier_code");
-                status = dataObj.getString("status");
-                transitTime = dataObj.getString("itemTimeLength");
-                lastEvent = dataObj.getString("lastEvent");
+                if (dataObj.get("itemTimeLength") != JSONObject.NULL) {
+                    transitTime = dataObj.getString("itemTimeLength");
+                } else {
+                    transitTime = "No Info";
+                }
+                if (dataObj.get("carrier_code") == JSONObject.NULL || dataObj.get("carrier_code").equals("")) {
+                    carrierCode = "No Info";
+                } else {
+                    carrierCode = dataObj.getString("carrier_code");
+                }
+                if (dataObj.get("lastEvent") == JSONObject.NULL || dataObj.get("lastEvent").equals("")) {
+                    lastEvent = "No Info";
+                } else {
+                    lastEvent = dataObj.getString("lastEvent");
+                }
+                if (dataObj.get("status") == JSONObject.NULL || dataObj.get("status").equals("")) {
+                    status = "No Info";
+                } else {
+                    status = dataObj.getString("status");
+                }
                 tblDelivery = tblDeliveryObj.createDeliveryObject(trackingNumber, orderId, partnerTrackingNumber, events.toString(), status, dateCurrent, lastEvent, transitTime, carrierCode);
             } catch (JSONException jsonException) {
                 jsonException.printStackTrace();
-                System.exit(0);
             }
         }
         return tblDelivery;
