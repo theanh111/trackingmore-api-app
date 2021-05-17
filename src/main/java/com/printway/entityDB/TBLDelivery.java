@@ -23,6 +23,7 @@ public class TBLDelivery {
 
     public TBLDelivery createDeliveryObject(String tracking_number, String order_number, String partner_tracking_number, String events, String status, Date dtime_entered, String last_events, String transit_time,String carrier_code) {
         TBLDelivery tblDelivery = new TBLDelivery();
+        tblDelivery.setWhoEntered("admin");
         tblDelivery.setTrackingNumber(tracking_number);
         tblDelivery.setPartnerTrackingNumber(partner_tracking_number);
         tblDelivery.setOrderNumber(order_number);

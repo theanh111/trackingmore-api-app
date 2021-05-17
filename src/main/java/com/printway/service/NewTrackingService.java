@@ -11,7 +11,11 @@ public class NewTrackingService {
 
     private NewTrackingRepository newTrackingRepository = new NewTrackingRepository();
 
-    public List<TBLNewTracking> findAll() {
-        return newTrackingRepository.findAll();
+    public List<TBLNewTracking> findAllOrderNotInTBLDelivery() {
+        return newTrackingRepository.findAllOrderNotInTBLDelivery();
+    }
+
+    public List<TBLNewTracking> findAllOrderToUpdateInTBLDelivery() {
+        return newTrackingRepository.findAllOrderToUpdate();
     }
 }

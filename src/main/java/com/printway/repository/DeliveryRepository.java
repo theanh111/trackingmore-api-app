@@ -40,6 +40,8 @@ public class DeliveryRepository {
             statement.setString(9, delivery.getCarrierCode());
             statement.setString(10, delivery.getOrderNumber());
             statement.executeUpdate();
+            conn.setAutoCommit(false);
+            conn.commit();
             conn.close();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -50,15 +52,20 @@ public class DeliveryRepository {
     public void update(TBLDelivery delivery) {
         try {
             Connection conn = DriverManager.getConnection(url, username, password);
-            String sqlQuery = "UPDATE tbldelivery SET status = ?, events = ?, dtime_entered = ?, last_events = ?, transit_time = ? WHERE tracking_number = ?;";
+            String sqlQuery = "UPDATE tbldelivery SET tracking_number = ?, partner_tracking_number = ?, status = ?, events = ?, last_events = ?, transit_time = ?, carrier_code = ? " +
+                    "WHERE order_number = ?;";
             PreparedStatement statement = conn.prepareStatement(sqlQuery);
-            statement.setString(1, delivery.getStatus());
-            statement.setString(2, delivery.getEvents());
-            statement.setTimestamp(3, new Timestamp(delivery.getDtimeEntered().getTime()));
-            statement.setString(4, delivery.getLastEvents());
-            statement.setString(5, delivery.getTransitTime());
-            statement.setString(6, delivery.getTrackingNumber());
+            statement.setString(1, delivery.getTrackingNumber());
+            statement.setString(2, delivery.getPartnerTrackingNumber());
+            statement.setString(3, delivery.getStatus());
+            statement.setString(4, delivery.getEvents());
+            statement.setString(5, delivery.getLastEvents());
+            statement.setString(6, delivery.getTransitTime());
+            statement.setString(7, delivery.getCarrierCode());
+            statement.setString(8, delivery.getOrderNumber());
             statement.executeUpdate();
+            conn.setAutoCommit(false);
+            conn.commit();
             conn.close();
         } catch (SQLException e) {
             e.printStackTrace();
@@ -77,6 +84,8 @@ public class DeliveryRepository {
             if (resultSet.next()) {
                 status = resultSet.getString("status");
             }
+            conn.setAutoCommit(false);
+            conn.commit();
             conn.close();
         } catch (SQLException e) {
             e.printStackTrace();
