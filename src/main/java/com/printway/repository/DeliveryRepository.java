@@ -1,6 +1,6 @@
 package com.printway.repository;
 
-import com.printway.config.Database;
+import com.printway.config.DBConnection;
 import com.printway.entityDB.TBLDelivery;
 import org.springframework.stereotype.Repository;
 
@@ -8,27 +8,16 @@ import java.sql.*;
 
 @Repository
 public class DeliveryRepository {
-    private final String url = getDatabase().getUrl();
-    private final String username = getDatabase().getUsername();
-    private final String password = getDatabase().getPassword();
+    public static DBConnection connection = DBConnection.getInstance();
 
     public DeliveryRepository() {
     }
 
-    public Database getDatabase() {
-        Database database = new Database();
-        database.getUrl();
-        database.getUsername();
-        database.getPassword();
-        return database;
-    }
-
     public void insert(TBLDelivery delivery) {
         try {
-            Connection conn = DriverManager.getConnection(url, username, password);
             String sqlQuery = "INSERT INTO tbldelivery (tracking_number, order_number, partner_tracking_number, events, status, dtime_entered, last_events, transit_time, carrier_code) " +
                     "VALUES (?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE order_number = ?;";
-            PreparedStatement statement = conn.prepareStatement(sqlQuery);
+            PreparedStatement statement = connection.getConnection().prepareStatement(sqlQuery);
             statement.setString(1, delivery.getTrackingNumber());
             statement.setString(2, delivery.getOrderNumber());
             statement.setString(3, delivery.getPartnerTrackingNumber());
@@ -40,21 +29,18 @@ public class DeliveryRepository {
             statement.setString(9, delivery.getCarrierCode());
             statement.setString(10, delivery.getOrderNumber());
             statement.executeUpdate();
-            conn.setAutoCommit(false);
-            conn.commit();
-            conn.close();
+            connection.getConnection().setAutoCommit(false);
+            connection.getConnection().commit();
         } catch (SQLException e) {
             e.printStackTrace();
-            System.exit(0);
         }
     }
 
     public void update(TBLDelivery delivery) {
         try {
-            Connection conn = DriverManager.getConnection(url, username, password);
             String sqlQuery = "UPDATE tbldelivery SET tracking_number = ?, partner_tracking_number = ?, status = ?, events = ?, last_events = ?, transit_time = ?, carrier_code = ? " +
                     "WHERE order_number = ?;";
-            PreparedStatement statement = conn.prepareStatement(sqlQuery);
+            PreparedStatement statement = connection.getConnection().prepareStatement(sqlQuery);
             statement.setString(1, delivery.getTrackingNumber());
             statement.setString(2, delivery.getPartnerTrackingNumber());
             statement.setString(3, delivery.getStatus());
@@ -64,29 +50,23 @@ public class DeliveryRepository {
             statement.setString(7, delivery.getCarrierCode());
             statement.setString(8, delivery.getOrderNumber());
             statement.executeUpdate();
-            conn.setAutoCommit(false);
-            conn.commit();
-            conn.close();
+            connection.getConnection().setAutoCommit(false);
+            connection.getConnection().commit();
         } catch (SQLException e) {
             e.printStackTrace();
-            System.exit(0);
         }
     }
 
     public String findStatusByTrackingNumber(String trackingNumber) {
         String status = null;
         try {
-            Connection conn = DriverManager.getConnection(url, username, password);
             String sqlQuery = "SELECT status FROM tbldelivery WHERE tracking_number = ?;";
-            PreparedStatement statement = conn.prepareStatement(sqlQuery);
+            PreparedStatement statement = connection.getConnection().prepareStatement(sqlQuery);
             statement.setString(1, trackingNumber);
             ResultSet resultSet = statement.executeQuery();
             if (resultSet.next()) {
                 status = resultSet.getString("status");
             }
-            conn.setAutoCommit(false);
-            conn.commit();
-            conn.close();
         } catch (SQLException e) {
             e.printStackTrace();
             System.exit(0);

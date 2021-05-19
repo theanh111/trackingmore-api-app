@@ -1,6 +1,7 @@
 package com.printway;
 
 import com.printway.api.TrackingmoreAPI;
+import com.printway.config.DBConnection;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ExitCodeGenerator;
 import org.springframework.boot.SpringApplication;
@@ -39,6 +40,8 @@ public class Application {
             TrackingmoreAPI trackingmoreAPI = new TrackingmoreAPI();
             trackingmoreAPI.getTrackingInfo();
             System.out.println("** DONE **");
+            //            System.out.println("- SQL Connection: " + DBConnection.getInstance().getConnection().toString().split("@")[1]);
+            DBConnection.getInstance().closeConnection();
             int exitCode = SpringApplication.exit(ctx, new ExitCodeGenerator() {
                 @Override
                 public int getExitCode() {
@@ -49,6 +52,8 @@ public class Application {
         } catch (Exception e) {
             e.printStackTrace();
             ConfigurableApplicationContext ctx = SpringApplication.run(Application.class, args);
+            //            System.out.println("- SQL Connection: " + DBConnection.getInstance().getConnection().toString().split("@")[1]);
+            DBConnection.getInstance().closeConnection();
             int exitCode = SpringApplication.exit(ctx, new ExitCodeGenerator() {
                 @Override
                 public int getExitCode() {
