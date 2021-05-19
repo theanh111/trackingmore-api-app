@@ -29,8 +29,6 @@ public class DeliveryRepository {
             statement.setString(9, delivery.getCarrierCode());
             statement.setString(10, delivery.getOrderNumber());
             statement.executeUpdate();
-            connection.getConnection().setAutoCommit(false);
-            connection.getConnection().commit();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -50,8 +48,6 @@ public class DeliveryRepository {
             statement.setString(7, delivery.getCarrierCode());
             statement.setString(8, delivery.getOrderNumber());
             statement.executeUpdate();
-            connection.getConnection().setAutoCommit(false);
-            connection.getConnection().commit();
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -69,7 +65,6 @@ public class DeliveryRepository {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            System.exit(0);
         }
         return status;
     }
