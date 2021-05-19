@@ -36,6 +36,7 @@ public class Application {
     public static void main(String[] args) {
         try {
             System.out.println("Tracking App Running...");
+            System.out.println("*** SQL Connection: " + DBConnection.getInstance().getConnection().toString().split("@")[1]);
             ConfigurableApplicationContext ctx = SpringApplication.run(Application.class, args);
             TrackingmoreAPI trackingmoreAPI = new TrackingmoreAPI();
             trackingmoreAPI.getTrackingInfo();

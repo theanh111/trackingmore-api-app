@@ -20,7 +20,7 @@ public class DBConnection {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
             this.connection = DriverManager.getConnection(url, username, password);
-            System.out.println("Kết nối thành công");
+            System.out.println("CONNECTED TO DATABASE SUCCESSFULLY!");
         } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
         }
