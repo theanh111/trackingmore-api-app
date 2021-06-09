@@ -16,47 +16,56 @@ public class NewTrackingRepository {
     }
 
     public List<TBLNewTracking> findAllOrderNotInTBLDelivery() {
-        List<TBLNewTracking> newTrackingList = new ArrayList<>();
-        try {
-            String sqlQuery = "SELECT order_id, tracking_number, partner_tracking_number " +
-                    "FROM tblnewtracking " +
-                    "WHERE LENGTH(partner_tracking_number) > 0 " +
-                    "AND order_id NOT IN (SELECT order_number FROM tbldelivery);";
-            PreparedStatement statement = connection.getConnection().prepareStatement(sqlQuery);
-            ResultSet resultSet = statement.executeQuery();
-            while (resultSet.next()) {
-                TBLNewTracking tblNewTracking = new TBLNewTracking();
-                tblNewTracking.setOrderId(resultSet.getString("order_id"));
-                tblNewTracking.setTrackingNumber(resultSet.getString("tracking_number"));
-                tblNewTracking.setPartnerTrackingNumber(resultSet.getString("partner_tracking_number"));
-                newTrackingList.add(tblNewTracking);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return newTrackingList;
+        return DBConnection.getInstance().findAllOrderNotInTBLDelivery();
     }
 
+//    public List<TBLNewTracking> findAllOrderNotInTBLDelivery() {
+//        List<TBLNewTracking> newTrackingList = new ArrayList<>();
+//        try {
+//            String sqlQuery = "SELECT order_id, tracking_number, partner_tracking_number " +
+//                    "FROM tblnewtracking " +
+//                    "WHERE LENGTH(partner_tracking_number) > 0 " +
+//                    "AND order_id NOT IN (SELECT order_number FROM tbldelivery);";
+//            PreparedStatement statement = connection.getConnection().prepareStatement(sqlQuery);
+//            ResultSet resultSet = statement.executeQuery();
+//            while (resultSet.next()) {
+//                TBLNewTracking tblNewTracking = new TBLNewTracking();
+//                tblNewTracking.setOrderId(resultSet.getString("order_id"));
+//                tblNewTracking.setTrackingNumber(resultSet.getString("tracking_number"));
+//                tblNewTracking.setPartnerTrackingNumber(resultSet.getString("partner_tracking_number"));
+//                newTrackingList.add(tblNewTracking);
+//            }
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//        return newTrackingList;
+//    }
+//
+
     public List<TBLNewTracking> findAllOrderToUpdate() {
-        List<TBLNewTracking> newTrackingList = new ArrayList<>();
-        try {
-            String sqlQuery = "SELECT order_number as order_id, tracking_number, partner_tracking_number " +
-                    "FROM tbldelivery " +
-                    "WHERE length(carrier_code) > 0 " +
-                    "AND length(order_number) > 0 " +
-                    "AND status NOT IN ('delivered');";
-            PreparedStatement statement = connection.getConnection().prepareStatement(sqlQuery);
-            ResultSet resultSet = statement.executeQuery();
-            while (resultSet.next()) {
-                TBLNewTracking tblNewTracking = new TBLNewTracking();
-                tblNewTracking.setOrderId(resultSet.getString("order_id"));
-                tblNewTracking.setTrackingNumber(resultSet.getString("partner_tracking_number"));
-                tblNewTracking.setPartnerTrackingNumber(resultSet.getString("tracking_number"));
-                newTrackingList.add(tblNewTracking);
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return newTrackingList;
+        return DBConnection.getInstance().findAllOrderToUpdate();
     }
+
+//    public List<TBLNewTracking> findAllOrderToUpdate() {
+//        List<TBLNewTracking> newTrackingList = new ArrayList<>();
+//        try {
+//            String sqlQuery = "SELECT order_number as order_id, tracking_number, partner_tracking_number " +
+//                    "FROM tbldelivery " +
+//                    "WHERE length(carrier_code) > 0 " +
+//                    "AND length(order_number) > 0 " +
+//                    "AND status NOT IN ('delivered');";
+//            PreparedStatement statement = connection.getConnection().prepareStatement(sqlQuery);
+//            ResultSet resultSet = statement.executeQuery();
+//            while (resultSet.next()) {
+//                TBLNewTracking tblNewTracking = new TBLNewTracking();
+//                tblNewTracking.setOrderId(resultSet.getString("order_id"));
+//                tblNewTracking.setTrackingNumber(resultSet.getString("partner_tracking_number"));
+//                tblNewTracking.setPartnerTrackingNumber(resultSet.getString("tracking_number"));
+//                newTrackingList.add(tblNewTracking);
+//            }
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//        return newTrackingList;
+//    }
 }
