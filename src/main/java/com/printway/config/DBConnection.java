@@ -1,7 +1,7 @@
 package com.printway.config;
 
-import com.printway.entityDB.TBLDelivery;
-import com.printway.entityDB.TBLNewTracking;
+import com.printway.entityDB.TBLTracking;
+import com.printway.entityDB.TBLImportTracking;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -12,18 +12,23 @@ public class DBConnection {
     private Connection connection;
 
     private DBConnection() {
-        String url = "jdbc:mysql://192.168.1.188/orderdesk";
-        String username = "theanh";
-        String password = "pW@@theanh123";
 
-//        String url = "jdbc:mysql://localhost:3306/orderdesk";
+        String url = "jdbc:mysql://128.199.143.87/pw_backoffice";
+        String username = "theanh";
+        String password = "1Q2w3e4r5t@@";
+
+//        String url = "jdbc:mysql://192.168.1.188/orderdesk";
+//        String username = "theanh";
+//        String password = "pW@@theanh123";
+
+//        String url = "jdbc:mysql://localhost:3306/pw_backoffice";
 //        String username = "root";
 //        String password = "P@ssw0rd";
 
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
             this.connection = DriverManager.getConnection(url, username, password);
-            System.out.println("CONNECTED TO DATABASE SUCCESSFULLY!");
+            System.out.println("CONNECTED TO DATABASE 87 SUCCESSFULLY!");
         } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
         }
@@ -49,41 +54,40 @@ public class DBConnection {
         }
     }
 
-    public void insert(TBLDelivery delivery) {
+    public void insert(TBLTracking tblTracking) {
         try {
-            String sqlQuery = "INSERT INTO tbldelivery (tracking_number, order_number, partner_tracking_number, events, status, dtime_entered, last_events, transit_time, carrier_code) " +
-                    "VALUES (?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE order_number = ?;";
+            Date dateCurrent = new Date(System.currentTimeMillis());
+            String sqlQuery = "INSERT INTO tbltracking (order_id, tracking_number, events, status, dtime_entered, last_events, transit_time, carrier_code, tracking_url, who_entered) " +
+                    "VALUES (?,?,?,?,?,?,?,?,?,?)";
             PreparedStatement statement = this.connection.prepareStatement(sqlQuery);
-            statement.setString(1, delivery.getTrackingNumber());
-            statement.setString(2, delivery.getOrderNumber());
-            statement.setString(3, delivery.getPartnerTrackingNumber());
-            statement.setString(4, delivery.getEvents());
-            statement.setString(5, delivery.getStatus());
-            statement.setTimestamp(6, new Timestamp(delivery.getDtimeEntered().getTime()));
-            statement.setString(7, delivery.getLastEvents());
-            statement.setString(8, delivery.getTransitTime());
-            statement.setString(9, delivery.getCarrierCode());
-            statement.setString(10, delivery.getOrderNumber());
-            statement.executeUpdate();
+            statement.setString(1, tblTracking.getOrderId());
+            statement.setString(2, tblTracking.getTrackingNumber());
+            statement.setString(3, tblTracking.getEvents());
+            statement.setString(4, tblTracking.getStatus());
+            statement.setTimestamp(5, new Timestamp(dateCurrent.getTime()));
+            statement.setString(6, tblTracking.getLastEvents());
+            statement.setString(7, tblTracking.getTransitTime());
+            statement.setString(8, tblTracking.getCarrierCode());
+            statement.setString(9, "https://www.trackingmore.com/en/" + tblTracking.getTrackingNumber());
+            statement.setString(10, tblTracking.getWhoEntered());
+            statement.execute();
             this.connection.commit();
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
 
-    public void update(TBLDelivery delivery) {
+    public void update(TBLTracking tblTracking) {
         try {
-            String sqlQuery = "UPDATE tbldelivery SET tracking_number = ?, partner_tracking_number = ?, status = ?, events = ?, last_events = ?, transit_time = ?, carrier_code = ? " +
-                    "WHERE order_number = ?;";
+            String sqlQuery = "UPDATE tbltracking SET status = ?, events = ?, last_events = ?, transit_time = ?, carrier_code = ? " +
+                    "WHERE order_id = ?;";
             PreparedStatement statement = this.connection.prepareStatement(sqlQuery);
-            statement.setString(1, delivery.getTrackingNumber());
-            statement.setString(2, delivery.getPartnerTrackingNumber());
-            statement.setString(3, delivery.getStatus());
-            statement.setString(4, delivery.getEvents());
-            statement.setString(5, delivery.getLastEvents());
-            statement.setString(6, delivery.getTransitTime());
-            statement.setString(7, delivery.getCarrierCode());
-            statement.setString(8, delivery.getOrderNumber());
+            statement.setString(1, tblTracking.getStatus());
+            statement.setString(2, tblTracking.getEvents());
+            statement.setString(3, tblTracking.getLastEvents());
+            statement.setString(4, tblTracking.getTransitTime());
+            statement.setString(5, tblTracking.getCarrierCode());
+            statement.setString(6, tblTracking.getOrderId());
             statement.executeUpdate();
             this.connection.commit();
         } catch (SQLException e) {
@@ -94,7 +98,7 @@ public class DBConnection {
     public String findStatusByTrackingNumber(String trackingNumber) {
         String status = null;
         try {
-            String sqlQuery = "SELECT status FROM tbldelivery WHERE tracking_number = ?;";
+            String sqlQuery = "SELECT status FROM tbltracking WHERE tracking_number = ?;";
             PreparedStatement statement = this.connection.prepareStatement(sqlQuery);
             statement.setString(1, trackingNumber);
             ResultSet resultSet = statement.executeQuery();
@@ -107,21 +111,22 @@ public class DBConnection {
         return status;
     }
 
-    public List<TBLNewTracking> findAllOrderNotInTBLDelivery() {
-        List<TBLNewTracking> newTrackingList = new ArrayList<>();
+    public List<TBLImportTracking> findAllOrderNotInTBLTracking() {
+        List<TBLImportTracking> newTrackingList = new ArrayList<>();
         try {
-            String sqlQuery = "SELECT order_id, tracking_number, partner_tracking_number " +
-                    "FROM tblnewtracking " +
-                    "WHERE LENGTH(partner_tracking_number) > 0 " +
-                    "AND order_id NOT IN (SELECT order_number FROM tbldelivery);";
+            String sqlQuery = "SELECT IT.order_id, IT.tracking_number, IT.tracking_url, IT.tracking_carrier " +
+                    "FROM tblimporttracking IT " +
+                    "WHERE LENGTH(IT.tracking_number) > 0 " +
+                    "AND IT.order_id NOT IN (SELECT T.order_id FROM tbltracking T)";
             PreparedStatement statement = this.connection.prepareStatement(sqlQuery);
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
-                TBLNewTracking tblNewTracking = new TBLNewTracking();
-                tblNewTracking.setOrderId(resultSet.getString("order_id"));
-                tblNewTracking.setTrackingNumber(resultSet.getString("tracking_number"));
-                tblNewTracking.setPartnerTrackingNumber(resultSet.getString("partner_tracking_number"));
-                newTrackingList.add(tblNewTracking);
+                TBLImportTracking tblImportTracking = new TBLImportTracking();
+                tblImportTracking.setOrderId(resultSet.getString("order_id"));
+                tblImportTracking.setTrackingNumber(resultSet.getString("tracking_number"));
+                tblImportTracking.setTrackingCarrier(resultSet.getString("tracking_carrier"));
+                tblImportTracking.setTrackingUrl(resultSet.getString("tracking_url"));
+                newTrackingList.add(tblImportTracking);
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -129,22 +134,23 @@ public class DBConnection {
         return newTrackingList;
     }
 
-    public List<TBLNewTracking> findAllOrderToUpdate() {
-        List<TBLNewTracking> newTrackingList = new ArrayList<>();
+    public List<TBLImportTracking> findAllOrderToUpdate() {
+        List<TBLImportTracking> newTrackingList = new ArrayList<>();
         try {
-            String sqlQuery = "SELECT order_number as order_id, tracking_number, partner_tracking_number " +
-                    "FROM tbldelivery " +
+            String sqlQuery = "SELECT order_id, tracking_number " +
+                    "FROM tbltracking " +
                     "WHERE length(carrier_code) > 0 " +
-                    "AND length(order_number) > 0 " +
+                    "AND length(order_id) > 0 " +
+                    "AND (LENGTH(link_label) = 0 OR link_label IS NULL) " +
+                    "AND (LENGTH(partner_tracking_number) = 0 OR partner_tracking_number IS NULL) " +
                     "AND status NOT IN ('delivered');";
             PreparedStatement statement = this.connection.prepareStatement(sqlQuery);
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
-                TBLNewTracking tblNewTracking = new TBLNewTracking();
-                tblNewTracking.setOrderId(resultSet.getString("order_id"));
-                tblNewTracking.setTrackingNumber(resultSet.getString("partner_tracking_number"));
-                tblNewTracking.setPartnerTrackingNumber(resultSet.getString("tracking_number"));
-                newTrackingList.add(tblNewTracking);
+                TBLImportTracking tblImportTracking = new TBLImportTracking();
+                tblImportTracking.setOrderId(resultSet.getString("order_id"));
+                tblImportTracking.setTrackingNumber(resultSet.getString("tracking_number"));
+                newTrackingList.add(tblImportTracking);
             }
         } catch (SQLException e) {
             e.printStackTrace();

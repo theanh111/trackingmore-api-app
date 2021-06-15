@@ -15,6 +15,8 @@ import org.springframework.core.env.Environment;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 import javax.sql.DataSource;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 @SpringBootApplication
 @AutoConfigurationPackage
@@ -34,14 +36,15 @@ public class Application {
     }
 
     public static void main(String[] args) {
+        Date dateCurrent = new Date();
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        String dateCurrentStr = formatter.format(dateCurrent);
+        ConfigurableApplicationContext ctx = SpringApplication.run(Application.class, args);
         try {
-            System.out.println("Tracking App Running...");
-            System.out.println("*** SQL Connection: " + DBConnection.getInstance().getConnection().toString().split("@")[1]);
-            ConfigurableApplicationContext ctx = SpringApplication.run(Application.class, args);
+            System.out.println("Tracking App Running [For Fulfillment]... [" + dateCurrentStr + "]");
             TrackingmoreAPI trackingmoreAPI = new TrackingmoreAPI();
             trackingmoreAPI.getTrackingInfo();
             System.out.println();
-            System.out.println("*** SQL Connection: " + DBConnection.getInstance().getConnection().toString().split("@")[1]);
             System.out.println("** DONE **");
             DBConnection.getInstance().closeConnection();
             int exitCode = SpringApplication.exit(ctx, new ExitCodeGenerator() {
@@ -53,7 +56,6 @@ public class Application {
             System.exit(exitCode);
         } catch (Exception e) {
             e.printStackTrace();
-            ConfigurableApplicationContext ctx = SpringApplication.run(Application.class, args);
             DBConnection.getInstance().closeConnection();
             int exitCode = SpringApplication.exit(ctx, new ExitCodeGenerator() {
                 @Override
