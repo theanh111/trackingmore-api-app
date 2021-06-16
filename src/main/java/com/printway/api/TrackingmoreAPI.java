@@ -42,29 +42,13 @@ public class TrackingmoreAPI {
         try {
             DBConnection.getInstance().getConnection().setAutoCommit(false);
 
-            List<TBLImportTracking> tblImportTrackingList = tblImportTrackingService.findAllOrderNotInTBLTracking();
-            System.out.println("** Total orders have trackingnumber in TBLImportTracking to scan: " + tblImportTrackingList.size());
-            System.out.println("* Checking to Add New...");
-            for (int i = 0; i < tblImportTrackingList.size(); i++) {
-                try {
-                    String tblTrackingStatus = tblTrackingService.findStatusByTrackingNumber(tblImportTrackingList.get(i).getTrackingNumber());
-                    if (tblTrackingStatus == null) {
-                        String carrierCode = getTrackingCarrier(tblImportTrackingList.get(i).getTrackingNumber());
-                        getTrackingResult(carrierCode, tblTrackingStatus, tblImportTrackingList.get(i));
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    continue;
-                }
-            }
-//
-//            List<TBLImportTracking> tblImportTrackingList = tblImportTrackingService.findAllOrderToUpdate();
-//            System.out.println("** Total orders in TBLImportTracking to scan: " + tblImportTrackingList.size());
-//            System.out.println("* Checking to Update...");
+//            List<TBLImportTracking> tblImportTrackingList = tblImportTrackingService.findAllOrderNotInTBLTracking();
+//            System.out.println("** Total orders have trackingnumber in TBLImportTracking to scan: " + tblImportTrackingList.size());
+//            System.out.println("* Checking to Add New...");
 //            for (int i = 0; i < tblImportTrackingList.size(); i++) {
 //                try {
 //                    String tblTrackingStatus = tblTrackingService.findStatusByTrackingNumber(tblImportTrackingList.get(i).getTrackingNumber());
-//                    if (tblTrackingStatus != null && !tblTrackingStatus.equals("delivered")) {
+//                    if (tblTrackingStatus == null) {
 //                        String carrierCode = getTrackingCarrier(tblImportTrackingList.get(i).getTrackingNumber());
 //                        getTrackingResult(carrierCode, tblTrackingStatus, tblImportTrackingList.get(i));
 //                    }
@@ -73,6 +57,22 @@ public class TrackingmoreAPI {
 //                    continue;
 //                }
 //            }
+
+            List<TBLImportTracking> tblImportTrackingList = tblImportTrackingService.findAllOrderToUpdate();
+            System.out.println("** Total orders in TBLImportTracking to scan: " + tblImportTrackingList.size());
+            System.out.println("* Checking to Update...");
+            for (int i = 0; i < tblImportTrackingList.size(); i++) {
+                try {
+                    String tblTrackingStatus = tblTrackingService.findStatusByTrackingNumber(tblImportTrackingList.get(i).getTrackingNumber());
+                    if (tblTrackingStatus != null && !tblTrackingStatus.equals("delivered")) {
+                        String carrierCode = getTrackingCarrier(tblImportTrackingList.get(i).getTrackingNumber());
+                        getTrackingResult(carrierCode, tblTrackingStatus, tblImportTrackingList.get(i));
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    continue;
+                }
+            }
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -99,14 +99,14 @@ public class TrackingmoreAPI {
                     createTrackingOnTrackingMore(trackingNumber, carrier);
                 }
                 if (metaObject.get("code").toString().equals("200")) {
-                    if (tblDeliveryStatus == null) {
-                        checkTrackingInfoToSave(responseObj, trackingNumber, orderId, dateCurrent, trackingUrl);
-                    }
-//                    if (tblDeliveryStatus != null) {
-//                        if (!tblDeliveryStatus.equals("delivered")) {
-//                            checkTrackingInfoToUpdate(responseObj, trackingNumber, orderId, dateCurrent, trackingUrl);
-//                        }
+//                    if (tblDeliveryStatus == null) {
+//                        checkTrackingInfoToSave(responseObj, trackingNumber, orderId, dateCurrent, trackingUrl);
 //                    }
+                    if (tblDeliveryStatus != null) {
+                        if (!tblDeliveryStatus.equals("delivered")) {
+                            checkTrackingInfoToUpdate(responseObj, trackingNumber, orderId, dateCurrent, trackingUrl);
+                        }
+                    }
                 }
             }
             client.close();
@@ -198,79 +198,7 @@ public class TrackingmoreAPI {
         return carrierCode;
     }
 
-    public void checkTrackingInfoToSave(JSONObject responseObj, String trackingNumber, String orderId, Date dateCurrent, String trackingUrl) {
-        try {
-            if (responseObj.has("data")) {
-                if (responseObj.get("data") instanceof JSONObject) {
-                    JSONObject dataObj = new JSONObject(responseObj.get("data").toString());
-                    if (dataObj.has("origin_info")) {
-                        if (dataObj.get("origin_info") instanceof JSONObject) {
-                            JSONObject originObj = new JSONObject(dataObj.get("origin_info").toString());
-                            if (dataObj.has("destination_info")) {
-                                if (dataObj.get("destination_info") instanceof JSONObject) {
-                                    JSONObject destinationObj = new JSONObject(dataObj.get("destination_info").toString());
-                                    boolean originTrackinfoIsNull = originObj.get("trackinfo") == JSONObject.NULL;
-                                    boolean destinationTrackinfoIsNull = destinationObj.get("trackinfo") == JSONObject.NULL;
-                                    if (!originTrackinfoIsNull && !destinationTrackinfoIsNull) {
-                                        insertBothEvent(dataObj, originObj, destinationObj, trackingNumber, orderId, dateCurrent, trackingUrl);
-                                        System.out.println("- SAVED TRACKINFO TO TBLTRACKING: Order ID [" + orderId + "]");
-                                    }
-                                    if (originTrackinfoIsNull && !destinationTrackinfoIsNull
-                                            || !originTrackinfoIsNull && destinationTrackinfoIsNull) {
-                                        if (!originTrackinfoIsNull) {
-                                            insertOriginEvent(dataObj, originObj, trackingNumber, orderId, dateCurrent, trackingUrl);
-                                            System.out.println("- SAVED TRACKINFO TO TBLTRACKING: Order ID [" + orderId + "]");
-                                        }
-                                        if (!destinationTrackinfoIsNull) {
-                                            insertDestinationEvent(dataObj, destinationObj, trackingNumber, orderId, dateCurrent, trackingUrl);
-                                            System.out.println("- SAVED TRACKINFO TO TBLTRACKING: Order ID [" + orderId + "]");
-                                        }
-                                    }
-                                    if (originTrackinfoIsNull && destinationTrackinfoIsNull) {
-                                        insertBothEvent(dataObj, originObj, destinationObj, trackingNumber, orderId, dateCurrent, trackingUrl);
-                                        System.out.println("- SAVED TRACKINFO TO TBLTRACKING: Order ID [" + orderId + "]");
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    if (dataObj.has("origin_info") && !dataObj.has("destination_info")) {
-                        if (dataObj.get("origin_info") instanceof JSONObject) {
-                            JSONObject originObj = new JSONObject(dataObj.get("origin_info").toString());
-                            boolean originTrackinfoIsNull = originObj.get("trackinfo") == JSONObject.NULL;
-                            if (!originTrackinfoIsNull) {
-                                insertOriginEvent(dataObj, originObj, trackingNumber, orderId, dateCurrent, trackingUrl);
-                                System.out.println("- SAVED TRACKINFO TO TBLTRACKING: Order ID [" + orderId + "]");
-                            }
-                            if (originTrackinfoIsNull) {
-                                insertOriginEvent(dataObj, originObj, trackingNumber, orderId, dateCurrent, trackingUrl);
-                                System.out.println("- SAVED TRACKINFO TO TBLTRACKING: Order ID [" + orderId + "]");
-                            }
-                        }
-                    }
-                    if (!dataObj.has("origin_info") && dataObj.has("destination_info")) {
-                        if (dataObj.get("destination_info") instanceof JSONObject) {
-                            JSONObject destinationObj = new JSONObject(dataObj.get("destination_info").toString());
-                            boolean destinationTrackinfoIsNull = destinationObj.get("trackinfo") == JSONObject.NULL;
-                            if (!destinationTrackinfoIsNull) {
-                                insertDestinationEvent(dataObj, destinationObj, trackingNumber, orderId, dateCurrent, trackingUrl);
-                                System.out.println("- SAVED TRACKINFO TO TBLTRACKING: Order ID [" + orderId + "]");
-                            }
-
-                            if (destinationTrackinfoIsNull) {
-                                insertDestinationEvent(dataObj, destinationObj, trackingNumber, orderId, dateCurrent, trackingUrl);
-                                System.out.println("- SAVED TRACKINFO TO TBLTRACKING: Order ID [" + orderId + "]");
-                            }
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-//    public void checkTrackingInfoToUpdate(JSONObject responseObj, String trackingNumber, String orderId, Date dateCurrent, String trackingUrl) {
+//    public void checkTrackingInfoToSave(JSONObject responseObj, String trackingNumber, String orderId, Date dateCurrent, String trackingUrl) {
 //        try {
 //            if (responseObj.has("data")) {
 //                if (responseObj.get("data") instanceof JSONObject) {
@@ -284,25 +212,54 @@ public class TrackingmoreAPI {
 //                                    boolean originTrackinfoIsNull = originObj.get("trackinfo") == JSONObject.NULL;
 //                                    boolean destinationTrackinfoIsNull = destinationObj.get("trackinfo") == JSONObject.NULL;
 //                                    if (!originTrackinfoIsNull && !destinationTrackinfoIsNull) {
-//                                        updateBothEvent(dataObj, originObj, destinationObj, trackingNumber, orderId, dateCurrent, trackingUrl);
-//                                        System.out.println("- UPDATED TRACKINFO TO TBLTRACKING: Order ID [" + orderId + "]");
+//                                        insertBothEvent(dataObj, originObj, destinationObj, trackingNumber, orderId, dateCurrent, trackingUrl);
+//                                        System.out.println("- SAVED TRACKINFO TO TBLTRACKING: Order ID [" + orderId + "]");
 //                                    }
 //                                    if (originTrackinfoIsNull && !destinationTrackinfoIsNull
 //                                            || !originTrackinfoIsNull && destinationTrackinfoIsNull) {
 //                                        if (!originTrackinfoIsNull) {
-//                                            updateOriginEvent(dataObj, originObj, trackingNumber, orderId, dateCurrent, trackingUrl);
-//                                            System.out.println("- UPDATED TRACKINFO TO TBLTRACKING: Order ID [" + orderId + "]");
+//                                            insertOriginEvent(dataObj, originObj, trackingNumber, orderId, dateCurrent, trackingUrl);
+//                                            System.out.println("- SAVED TRACKINFO TO TBLTRACKING: Order ID [" + orderId + "]");
 //                                        }
 //                                        if (!destinationTrackinfoIsNull) {
-//                                            updateDestinationEvent(dataObj, destinationObj, trackingNumber, orderId, dateCurrent, trackingUrl);
-//                                            System.out.println("- UPDATED TRACKINFO TO TBLTRACKING: Order ID [" + orderId + "]");
+//                                            insertDestinationEvent(dataObj, destinationObj, trackingNumber, orderId, dateCurrent, trackingUrl);
+//                                            System.out.println("- SAVED TRACKINFO TO TBLTRACKING: Order ID [" + orderId + "]");
 //                                        }
 //                                    }
 //                                    if (originTrackinfoIsNull && destinationTrackinfoIsNull) {
-//                                        updateBothEvent(dataObj, originObj, destinationObj, trackingNumber, orderId, dateCurrent, trackingUrl);
-//                                        System.out.println("- UPDATED TRACKINFO TO TBLTRACKING: Order ID [" + orderId + "]");
+//                                        insertBothEvent(dataObj, originObj, destinationObj, trackingNumber, orderId, dateCurrent, trackingUrl);
+//                                        System.out.println("- SAVED TRACKINFO TO TBLTRACKING: Order ID [" + orderId + "]");
 //                                    }
 //                                }
+//                            }
+//                        }
+//                    }
+//                    if (dataObj.has("origin_info") && !dataObj.has("destination_info")) {
+//                        if (dataObj.get("origin_info") instanceof JSONObject) {
+//                            JSONObject originObj = new JSONObject(dataObj.get("origin_info").toString());
+//                            boolean originTrackinfoIsNull = originObj.get("trackinfo") == JSONObject.NULL;
+//                            if (!originTrackinfoIsNull) {
+//                                insertOriginEvent(dataObj, originObj, trackingNumber, orderId, dateCurrent, trackingUrl);
+//                                System.out.println("- SAVED TRACKINFO TO TBLTRACKING: Order ID [" + orderId + "]");
+//                            }
+//                            if (originTrackinfoIsNull) {
+//                                insertOriginEvent(dataObj, originObj, trackingNumber, orderId, dateCurrent, trackingUrl);
+//                                System.out.println("- SAVED TRACKINFO TO TBLTRACKING: Order ID [" + orderId + "]");
+//                            }
+//                        }
+//                    }
+//                    if (!dataObj.has("origin_info") && dataObj.has("destination_info")) {
+//                        if (dataObj.get("destination_info") instanceof JSONObject) {
+//                            JSONObject destinationObj = new JSONObject(dataObj.get("destination_info").toString());
+//                            boolean destinationTrackinfoIsNull = destinationObj.get("trackinfo") == JSONObject.NULL;
+//                            if (!destinationTrackinfoIsNull) {
+//                                insertDestinationEvent(dataObj, destinationObj, trackingNumber, orderId, dateCurrent, trackingUrl);
+//                                System.out.println("- SAVED TRACKINFO TO TBLTRACKING: Order ID [" + orderId + "]");
+//                            }
+//
+//                            if (destinationTrackinfoIsNull) {
+//                                insertDestinationEvent(dataObj, destinationObj, trackingNumber, orderId, dateCurrent, trackingUrl);
+//                                System.out.println("- SAVED TRACKINFO TO TBLTRACKING: Order ID [" + orderId + "]");
 //                            }
 //                        }
 //                    }
@@ -312,6 +269,78 @@ public class TrackingmoreAPI {
 //            e.printStackTrace();
 //        }
 //    }
+
+    public void checkTrackingInfoToUpdate(JSONObject responseObj, String trackingNumber, String orderId, Date dateCurrent, String trackingUrl) {
+        try {
+            if (responseObj.has("data")) {
+                if (responseObj.get("data") instanceof JSONObject) {
+                    JSONObject dataObj = new JSONObject(responseObj.get("data").toString());
+                    if (dataObj.has("origin_info")) {
+                        if (dataObj.get("origin_info") instanceof JSONObject) {
+                            JSONObject originObj = new JSONObject(dataObj.get("origin_info").toString());
+                            if (dataObj.has("destination_info")) {
+                                if (dataObj.get("destination_info") instanceof JSONObject) {
+                                    JSONObject destinationObj = new JSONObject(dataObj.get("destination_info").toString());
+                                    boolean originTrackinfoIsNull = originObj.get("trackinfo") == JSONObject.NULL;
+                                    boolean destinationTrackinfoIsNull = destinationObj.get("trackinfo") == JSONObject.NULL;
+                                    if (!originTrackinfoIsNull && !destinationTrackinfoIsNull) {
+                                        updateBothEvent(dataObj, originObj, destinationObj, trackingNumber, orderId, dateCurrent, trackingUrl);
+                                        System.out.println("- UPDATED TRACKINFO TO TBLTRACKING: Order ID [" + orderId + "]");
+                                    }
+                                    if (originTrackinfoIsNull && !destinationTrackinfoIsNull
+                                            || !originTrackinfoIsNull && destinationTrackinfoIsNull) {
+                                        if (!originTrackinfoIsNull) {
+                                            updateOriginEvent(dataObj, originObj, trackingNumber, orderId, dateCurrent, trackingUrl);
+                                            System.out.println("- UPDATED TRACKINFO TO TBLTRACKING: Order ID [" + orderId + "]");
+                                        }
+                                        if (!destinationTrackinfoIsNull) {
+                                            updateDestinationEvent(dataObj, destinationObj, trackingNumber, orderId, dateCurrent, trackingUrl);
+                                            System.out.println("- UPDATED TRACKINFO TO TBLTRACKING: Order ID [" + orderId + "]");
+                                        }
+                                    }
+                                    if (originTrackinfoIsNull && destinationTrackinfoIsNull) {
+                                        updateBothEvent(dataObj, originObj, destinationObj, trackingNumber, orderId, dateCurrent, trackingUrl);
+                                        System.out.println("- UPDATED TRACKINFO TO TBLTRACKING: Order ID [" + orderId + "]");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    if (dataObj.has("origin_info") && !dataObj.has("destination_info")) {
+                        if (dataObj.get("origin_info") instanceof JSONObject) {
+                            JSONObject originObj = new JSONObject(dataObj.get("origin_info").toString());
+                            boolean originTrackinfoIsNull = originObj.get("trackinfo") == JSONObject.NULL;
+                            if (!originTrackinfoIsNull) {
+                                updateOriginEvent(dataObj, originObj, trackingNumber, orderId, dateCurrent, trackingUrl);
+                                System.out.println("- UPDATED TRACKINFO TO TBLTRACKING: Order ID [" + orderId + "]");
+                            }
+                            if (originTrackinfoIsNull) {
+                                updateOriginEvent(dataObj, originObj, trackingNumber, orderId, dateCurrent, trackingUrl);
+                                System.out.println("- UPDATED TRACKINFO TO TBLTRACKING: Order ID [" + orderId + "]");
+                            }
+                        }
+                    }
+                    if (!dataObj.has("origin_info") && dataObj.has("destination_info")) {
+                        if (dataObj.get("destination_info") instanceof JSONObject) {
+                            JSONObject destinationObj = new JSONObject(dataObj.get("destination_info").toString());
+                            boolean destinationTrackinfoIsNull = destinationObj.get("trackinfo") == JSONObject.NULL;
+                            if (!destinationTrackinfoIsNull) {
+                                updateDestinationEvent(dataObj, destinationObj, trackingNumber, orderId, dateCurrent, trackingUrl);
+                                System.out.println("- UPDATED TRACKINFO TO TBLTRACKING: Order ID [" + orderId + "]");
+                            }
+
+                            if (destinationTrackinfoIsNull) {
+                                updateDestinationEvent(dataObj, destinationObj, trackingNumber, orderId, dateCurrent, trackingUrl);
+                                System.out.println("- UPDATED TRACKINFO TO TBLTRACKING: Order ID [" + orderId + "]");
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     public TBLTracking getOriginEvent(JSONObject dataObj, JSONObject originObj, String trackingNumber, String orderId, Date dateCurrent, String trackingUrl) {
         if (originObj.get("trackinfo") instanceof JSONArray) {
@@ -468,33 +497,33 @@ public class TrackingmoreAPI {
         return tblTracking;
     }
 
-    public void insertBothEvent(JSONObject dataObj, JSONObject originObj, JSONObject destinationObj, String trackingNumber, String orderId, Date dateCurrent, String trackingUrl) {
-        TBLTracking tblTracking = getBothEvent(dataObj, originObj, destinationObj, trackingNumber, orderId, dateCurrent, trackingUrl);
-        tblTrackingService.insert(tblTracking);
-    }
-
-    public void insertOriginEvent(JSONObject dataObj, JSONObject originObj, String trackingNumber, String orderId, Date dateCurrent, String trackingUrl) {
-        TBLTracking tblTracking = getOriginEvent(dataObj, originObj, trackingNumber, orderId, dateCurrent, trackingUrl);
-        tblTrackingService.insert(tblTracking);
-    }
-
-    public void insertDestinationEvent(JSONObject dataObj, JSONObject destinationObj, String trackingNumber, String orderId, Date dateCurrent, String trackingUrl) {
-        TBLTracking tblTracking = getDestinationEvent(dataObj, destinationObj, trackingNumber, orderId, dateCurrent, trackingUrl);
-        tblTrackingService.insert(tblTracking);
-    }
-
-//    public void updateBothEvent(JSONObject dataObj, JSONObject originObj, JSONObject destinationObj, String trackingNumber, String orderId, Date dateCurrent, String trackingUrl) {
+//    public void insertBothEvent(JSONObject dataObj, JSONObject originObj, JSONObject destinationObj, String trackingNumber, String orderId, Date dateCurrent, String trackingUrl) {
 //        TBLTracking tblTracking = getBothEvent(dataObj, originObj, destinationObj, trackingNumber, orderId, dateCurrent, trackingUrl);
-//        tblTrackingService.update(tblTracking);
+//        tblTrackingService.insert(tblTracking);
 //    }
 //
-//    public void updateOriginEvent(JSONObject dataObj, JSONObject originObj, String trackingNumber, String orderId, Date dateCurrent, String trackingUrl) {
+//    public void insertOriginEvent(JSONObject dataObj, JSONObject originObj, String trackingNumber, String orderId, Date dateCurrent, String trackingUrl) {
 //        TBLTracking tblTracking = getOriginEvent(dataObj, originObj, trackingNumber, orderId, dateCurrent, trackingUrl);
-//        tblTrackingService.update(tblTracking);
+//        tblTrackingService.insert(tblTracking);
 //    }
 //
-//    public void updateDestinationEvent(JSONObject dataObj, JSONObject destinationObj, String trackingNumber, String orderId, Date dateCurrent, String trackingUrl) {
+//    public void insertDestinationEvent(JSONObject dataObj, JSONObject destinationObj, String trackingNumber, String orderId, Date dateCurrent, String trackingUrl) {
 //        TBLTracking tblTracking = getDestinationEvent(dataObj, destinationObj, trackingNumber, orderId, dateCurrent, trackingUrl);
-//        tblTrackingService.update(tblTracking);
+//        tblTrackingService.insert(tblTracking);
 //    }
+
+    public void updateBothEvent(JSONObject dataObj, JSONObject originObj, JSONObject destinationObj, String trackingNumber, String orderId, Date dateCurrent, String trackingUrl) {
+        TBLTracking tblTracking = getBothEvent(dataObj, originObj, destinationObj, trackingNumber, orderId, dateCurrent, trackingUrl);
+        tblTrackingService.update(tblTracking);
+    }
+
+    public void updateOriginEvent(JSONObject dataObj, JSONObject originObj, String trackingNumber, String orderId, Date dateCurrent, String trackingUrl) {
+        TBLTracking tblTracking = getOriginEvent(dataObj, originObj, trackingNumber, orderId, dateCurrent, trackingUrl);
+        tblTrackingService.update(tblTracking);
+    }
+
+    public void updateDestinationEvent(JSONObject dataObj, JSONObject destinationObj, String trackingNumber, String orderId, Date dateCurrent, String trackingUrl) {
+        TBLTracking tblTracking = getDestinationEvent(dataObj, destinationObj, trackingNumber, orderId, dateCurrent, trackingUrl);
+        tblTrackingService.update(tblTracking);
+    }
 }
