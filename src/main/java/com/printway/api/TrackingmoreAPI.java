@@ -177,7 +177,17 @@ public class TrackingmoreAPI {
                             if (code.equals("dhl")) {
                                 carrierCode = "dhl";
                             }
+                            if (code.equals("trakpak")) {
+                                carrierCode = "trakpak";
+                            }
+                            if (code.equals("yunexpress")) {
+                                carrierCode = "yunexpress";
+                            }
+                            if (code.equals("yanwen")) {
+                                carrierCode = "yanwen";
+                            }
                         }
+
                     }
                 }
             }
@@ -225,6 +235,35 @@ public class TrackingmoreAPI {
 //                            }
 //                        }
 //                    }
+//                    if (dataObj.has("origin_info") && !dataObj.has("destination_info")) {
+//                        if (dataObj.get("origin_info") instanceof JSONObject) {
+//                            JSONObject originObj = new JSONObject(dataObj.get("origin_info").toString());
+//                            boolean originTrackinfoIsNull = originObj.get("trackinfo") == JSONObject.NULL;
+//                            if (!originTrackinfoIsNull) {
+//                                insertOriginEvent(dataObj, originObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
+//                                System.out.println("- SAVED TRACKINFO TO TBLDELIVERY: Order ID [" + orderId + "]");
+//                            }
+//                            if (originTrackinfoIsNull) {
+//                                insertOriginEvent(dataObj, originObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
+//                                System.out.println("- SAVED TRACKINFO TO TBLDELIVERY: Order ID [" + orderId + "]");
+//                            }
+//                        }
+//                    }
+//                    if (!dataObj.has("origin_info") && dataObj.has("destination_info")) {
+//                        if (dataObj.get("destination_info") instanceof JSONObject) {
+//                            JSONObject destinationObj = new JSONObject(dataObj.get("destination_info").toString());
+//                            boolean destinationTrackinfoIsNull = destinationObj.get("trackinfo") == JSONObject.NULL;
+//                            if (!destinationTrackinfoIsNull) {
+//                                insertDestinationEvent(dataObj, destinationObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
+//                                System.out.println("- SAVED TRACKINFO TO TBLDELIVERY: Order ID [" + orderId + "]");
+//                            }
+//
+//                            if (destinationTrackinfoIsNull) {
+//                                insertDestinationEvent(dataObj, destinationObj, trackingNumber, orderId, partnerTrackingNumber, dateCurrent);
+//                                System.out.println("- SAVED TRACKINFO TO TBLDELIVERY: Order ID [" + orderId + "]");
+//                            }
+//                        }
+//                    }
 //                }
 //            }
 //        } catch (Exception e) {
@@ -269,6 +308,7 @@ public class TrackingmoreAPI {
 
                         }
                     }
+
                 }
             }
         } catch (Exception e) {

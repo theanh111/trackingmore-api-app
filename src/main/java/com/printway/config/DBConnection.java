@@ -64,7 +64,7 @@ public class DBConnection {
             statement.setString(8, delivery.getTransitTime());
             statement.setString(9, delivery.getCarrierCode());
             statement.setString(10, delivery.getOrderNumber());
-            statement.executeUpdate();
+            statement.execute();
             this.connection.commit();
         } catch (SQLException e) {
             e.printStackTrace();
