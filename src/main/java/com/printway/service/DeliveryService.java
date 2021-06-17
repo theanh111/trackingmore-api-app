@@ -1,5 +1,6 @@
 package com.printway.service;
 
+import com.printway.config.DBConnection;
 import com.printway.entityDB.TBLDelivery;
 import com.printway.repository.DeliveryRepository;
 import org.springframework.stereotype.Service;
@@ -19,5 +20,9 @@ public class DeliveryService {
 
     public String findStatusByTrackingNumber(String trackingNumber) {
         return deliveryRepository.findStatusByTrackingNumber(trackingNumber);
+    }
+
+    public boolean checkOrderIdInTBLDelivery(String order_id) {
+        return deliveryRepository.checkOrderIdInTBLDelivery(order_id);
     }
 }

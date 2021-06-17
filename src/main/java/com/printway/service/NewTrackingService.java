@@ -1,5 +1,6 @@
 package com.printway.service;
 
+import com.printway.config.DBConnection;
 import com.printway.entityDB.TBLNewTracking;
 import com.printway.repository.NewTrackingRepository;
 import org.springframework.stereotype.Service;
@@ -17,5 +18,9 @@ public class NewTrackingService {
 
     public List<TBLNewTracking> findAllOrderToUpdateInTBLDelivery() {
         return newTrackingRepository.findAllOrderToUpdate();
+    }
+
+    public TBLNewTracking findOneOrderToUpdate(String orderId) {
+        return newTrackingRepository.findOneOrderToUpdate(orderId);
     }
 }

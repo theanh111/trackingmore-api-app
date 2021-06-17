@@ -20,6 +20,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -37,6 +38,53 @@ public class TrackingmoreAPI {
     private TBLDelivery tblDeliveryObj = new TBLDelivery();
     private DeliveryService deliveryService = new DeliveryService();
     private NewTrackingService newTrackingService = new NewTrackingService();
+
+    public void getTrackingInfoByOrderId(String orderId) {
+        try {
+            DBConnection.getInstance().getConnection().setAutoCommit(false);
+            boolean checkOrderIdDelivery = deliveryService.checkOrderIdInTBLDelivery(orderId);
+            if (checkOrderIdDelivery) {
+                System.out.println("- Order ID: " + orderId + " is EXIST IN TBLDELIVERY!");
+                //            List<TBLNewTracking> listNewTracking = newTrackingService.findAllOrderNotInTBLDelivery();
+//            System.out.println("** Total orders have trackingnumber in TBLNewtracking to scan: " + listNewTracking.size());
+//            System.out.println("* Checking to Add New...");
+//            for (int i = 0; i < listNewTracking.size(); i++) {
+//                try {
+//                    String tblDeliveryStatus = deliveryService.findStatusByTrackingNumber(listNewTracking.get(i).getPartnerTrackingNumber());
+//                    if (tblDeliveryStatus == null) {
+//                        String carrierCode = getTrackingCarrier(listNewTracking.get(i).getPartnerTrackingNumber());
+//                        getTrackingResult(carrierCode, tblDeliveryStatus, listNewTracking.get(i));
+//                    }
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                    continue;
+//                }
+//            }
+                TBLNewTracking tblNewTracking = newTrackingService.findOneOrderToUpdate(orderId);
+                List<TBLNewTracking> listNewTracking = new ArrayList<>();
+                listNewTracking.add(tblNewTracking);
+                System.out.println("** Total orders in TBLDelivery to scan: " + listNewTracking.size());
+                System.out.println("* Checking to Update...");
+                for (int i = 0; i < listNewTracking.size(); i++) {
+                    try {
+                        String tblDeliveryStatus = deliveryService.findStatusByTrackingNumber(listNewTracking.get(i).getPartnerTrackingNumber());
+                        if (tblDeliveryStatus != null && !tblDeliveryStatus.equals("delivered")) {
+                            String carrierCode = getTrackingCarrier(listNewTracking.get(i).getPartnerTrackingNumber());
+                            getTrackingResult(carrierCode, tblDeliveryStatus, listNewTracking.get(i));
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                        continue;
+                    }
+                }
+            } else {
+                System.out.println("- CAN'T FIND Order ID: " + orderId + " IN TBLDELIVERY!");
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 
     public void getTrackingInfo() {
         try {

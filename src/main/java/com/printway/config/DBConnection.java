@@ -129,6 +129,29 @@ public class DBConnection {
         return newTrackingList;
     }
 
+    public TBLNewTracking findOneOrderToUpdate(String orderId) {
+        TBLNewTracking newTracking = new TBLNewTracking();
+        try {
+            String sqlQuery = "SELECT order_number as order_id, tracking_number, partner_tracking_number " +
+                    "FROM tbldelivery " +
+                    "WHERE order_number = ? " +
+                    "AND length(carrier_code) > 0 " +
+                    "AND length(order_number) > 0 " +
+                    "AND status NOT IN ('delivered');";
+            PreparedStatement statement = this.connection.prepareStatement(sqlQuery);
+            statement.setString(1, orderId);
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                newTracking.setOrderId(resultSet.getString("order_id"));
+                newTracking.setTrackingNumber(resultSet.getString("partner_tracking_number"));
+                newTracking.setPartnerTrackingNumber(resultSet.getString("tracking_number"));
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return newTracking;
+    }
+
     public List<TBLNewTracking> findAllOrderToUpdate() {
         List<TBLNewTracking> newTrackingList = new ArrayList<>();
         try {
@@ -150,5 +173,25 @@ public class DBConnection {
             e.printStackTrace();
         }
         return newTrackingList;
+    }
+
+
+    public boolean checkOrderIdInTBLDelivery(String order_id) {
+        try {
+            String orderId = null;
+            String sqlQuery = "SELECT order_number as order_id FROM tbldelivery WHERE order_number = ?;";
+            PreparedStatement statement = this.connection.prepareStatement(sqlQuery);
+            statement.setString(1, order_id);
+            ResultSet resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                orderId = resultSet.getString("order_id");
+            }
+            if (orderId != null) {
+                return true;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 }

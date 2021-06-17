@@ -67,6 +67,10 @@ public class DeliveryRepository {
         return DBConnection.getInstance().findStatusByTrackingNumber(trackingNumber);
     }
 
+    public boolean checkOrderIdInTBLDelivery(String order_id) {
+        return DBConnection.getInstance().checkOrderIdInTBLDelivery(order_id);
+    }
+
 //    public String findStatusByTrackingNumber(String trackingNumber) {
 //        String status = null;
 //        try {

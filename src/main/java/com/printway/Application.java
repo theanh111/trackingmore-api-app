@@ -43,7 +43,15 @@ public class Application {
             System.out.println("Tracking App Running... [" + dateCurrentStr + "]");
             ConfigurableApplicationContext ctx = SpringApplication.run(Application.class, args);
             TrackingmoreAPI trackingmoreAPI = new TrackingmoreAPI();
-            trackingmoreAPI.getTrackingInfo();
+            for (String parameter : args) {
+                if (parameter.equals("all")) {
+                    System.out.println("- Scan all...");
+                    trackingmoreAPI.getTrackingInfo();
+                } else {
+                    System.out.println("- Scan for: " + parameter);
+                    trackingmoreAPI.getTrackingInfoByOrderId(parameter);
+                }
+            }
             System.out.println();
             System.out.println("** DONE **");
             DBConnection.getInstance().closeConnection();

@@ -46,6 +46,10 @@ public class NewTrackingRepository {
         return DBConnection.getInstance().findAllOrderToUpdate();
     }
 
+    public TBLNewTracking findOneOrderToUpdate(String orderId) {
+        return DBConnection.getInstance().findOneOrderToUpdate(orderId);
+    }
+
 //    public List<TBLNewTracking> findAllOrderToUpdate() {
 //        List<TBLNewTracking> newTrackingList = new ArrayList<>();
 //        try {
