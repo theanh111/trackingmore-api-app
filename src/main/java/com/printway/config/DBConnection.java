@@ -52,7 +52,7 @@ public class DBConnection {
     public void insert(TBLDelivery delivery) {
         try {
             String sqlQuery = "INSERT INTO tbldelivery (tracking_number, order_number, partner_tracking_number, events, status, dtime_entered, last_events, transit_time, carrier_code) " +
-                    "VALUES (?,?,?,?,?,?,?,?,?) ON DUPLICATE KEY UPDATE order_number = ?;";
+                    "VALUES (?,?,?,?,?,?,?,?,?) ";
             PreparedStatement statement = this.connection.prepareStatement(sqlQuery);
             statement.setString(1, delivery.getTrackingNumber());
             statement.setString(2, delivery.getOrderNumber());
@@ -63,7 +63,6 @@ public class DBConnection {
             statement.setString(7, delivery.getLastEvents());
             statement.setString(8, delivery.getTransitTime());
             statement.setString(9, delivery.getCarrierCode());
-            statement.setString(10, delivery.getOrderNumber());
             statement.execute();
             this.connection.commit();
         } catch (SQLException e) {
