@@ -45,4 +45,5 @@ public class TBLNewTracking {
     private Date dtimeLastChanged;
     private String material;
     private String canceled;
+    private String date_received;
 }

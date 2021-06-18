@@ -20,6 +20,7 @@ public class TBLDelivery {
     private String lastEvents;
     private String transitTime;
     private String carrierCode;
+    private String date_received;
 
     public TBLDelivery createDeliveryObject(String tracking_number, String order_number, String partner_tracking_number, String events, String status, Date dtime_entered, String last_events, String transit_time,String carrier_code) {
         TBLDelivery tblDelivery = new TBLDelivery();
