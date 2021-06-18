@@ -71,6 +71,7 @@ public class DBConnection {
             statement.setString(9, "https://www.trackingmore.com/en/" + tblTracking.getTrackingNumber());
             statement.setString(10, tblTracking.getWhoEntered());
             statement.execute();
+            System.out.println("- SQL: " + statement);
             this.connection.commit();
         } catch (SQLException e) {
             e.printStackTrace();
