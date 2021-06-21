@@ -109,10 +109,10 @@ public class DBConnection {
     public List<TBLNewTracking> findAllOrderNotInTBLDelivery() {
         List<TBLNewTracking> newTrackingList = new ArrayList<>();
         try {
-            String sqlQuery = "SELECT order_id, tracking_number, partner_tracking_number " +
+            String sqlQuery = "SELECT order_id, tracking_number, partner_tracking_number, dtime_entered " +
                     "FROM tblnewtracking " +
                     "WHERE LENGTH(partner_tracking_number) > 0 " +
-                    "AND order_id NOT IN (SELECT order_number FROM tbldelivery);";
+                    "AND order_id NOT IN (SELECT order_number FROM tbldelivery) ORDER BY dtime_entered DESC;";
             PreparedStatement statement = this.connection.prepareStatement(sqlQuery);
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
@@ -154,11 +154,11 @@ public class DBConnection {
     public List<TBLNewTracking> findAllOrderToUpdate() {
         List<TBLNewTracking> newTrackingList = new ArrayList<>();
         try {
-            String sqlQuery = "SELECT order_number as order_id, tracking_number, partner_tracking_number " +
+            String sqlQuery = "SELECT order_number as order_id, tracking_number, partner_tracking_number, dtime_entered " +
                     "FROM tbldelivery " +
                     "WHERE length(carrier_code) > 0 " +
                     "AND length(order_number) > 0 " +
-                    "AND status NOT IN ('delivered');";
+                    "AND status NOT IN ('delivered') ORDER BY dtime_entered DESC;";
             PreparedStatement statement = this.connection.prepareStatement(sqlQuery);
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
