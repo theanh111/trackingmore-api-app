@@ -1,6 +1,6 @@
 package com.printway.service;
 
-import com.printway.config.DBConnection;
+import com.printway.entityDB.TBLDelivery;
 import com.printway.entityDB.TBLNewTracking;
 import com.printway.repository.NewTrackingRepository;
 import org.springframework.stereotype.Service;
@@ -20,7 +20,15 @@ public class NewTrackingService {
         return newTrackingRepository.findAllOrderToUpdate();
     }
 
-    public TBLNewTracking findOneOrderToUpdate(String orderId) {
-        return newTrackingRepository.findOneOrderToUpdate(orderId);
+    public boolean checkOrderIdInTBLNewtracking(String order_id, String dateReceived) {
+        return newTrackingRepository.checkOrderIdInTBLNewtracking(order_id, dateReceived);
+    }
+
+    public TBLNewTracking findOneOrderToAdd(String orderId, String dateReceived) {
+        return newTrackingRepository.findOneOrderToAdd(orderId, dateReceived);
+    }
+
+    public TBLNewTracking findOneOrderToUpdate(String orderId, String dateReceived) {
+        return newTrackingRepository.findOneOrderToUpdate(orderId, dateReceived);
     }
 }

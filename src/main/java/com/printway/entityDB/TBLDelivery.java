@@ -22,7 +22,7 @@ public class TBLDelivery {
     private String carrierCode;
     private String date_received;
 
-    public TBLDelivery createDeliveryObject(String tracking_number, String order_number, String partner_tracking_number, String events, String status, Date dtime_entered, String last_events, String transit_time,String carrier_code) {
+    public TBLDelivery createDeliveryObject(String tracking_number, String order_number, String partner_tracking_number, String events, String status, Date dtime_entered, String last_events, String transit_time,String carrier_code, String date_received) {
         TBLDelivery tblDelivery = new TBLDelivery();
         tblDelivery.setWhoEntered("admin");
         tblDelivery.setTrackingNumber(tracking_number);
@@ -34,6 +34,7 @@ public class TBLDelivery {
         tblDelivery.setLastEvents(last_events);
         tblDelivery.setDtimeEntered(dtime_entered);
         tblDelivery.setCarrierCode(carrier_code);
+        tblDelivery.setDate_received(date_received);
         return tblDelivery;
     }
 }

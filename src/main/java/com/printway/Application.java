@@ -39,17 +39,35 @@ public class Application {
         Date dateCurrent = new Date();
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String dateCurrentStr = formatter.format(dateCurrent);
+        ConfigurableApplicationContext ctx = SpringApplication.run(Application.class, args);
         try {
             System.out.println("Tracking App Running... [" + dateCurrentStr + "]");
-            ConfigurableApplicationContext ctx = SpringApplication.run(Application.class, args);
             TrackingmoreAPI trackingmoreAPI = new TrackingmoreAPI();
+
+//            String parameter = "9415204/2021-06-09";
+//            if (parameter.equals("all")) {
+//                System.out.println("- Scan all...");
+//                trackingmoreAPI.getTrackingInfo();
+//            } else {
+//                System.out.println("- Scan for: [" + parameter + "] ...  [" + dateCurrentStr + "]");
+//                String orderId = parameter.split("/")[0];
+//                String dateReceived = parameter.split("/")[1];
+//                System.out.println("- Order ID Input: " + orderId);
+//                System.out.println("- Date Received Input: " + dateReceived);
+//                trackingmoreAPI.getTrackingInfoByOrderId(orderId, dateReceived);
+//            }
+
             for (String parameter : args) {
                 if (parameter.equals("all")) {
                     System.out.println("- Scan all...");
                     trackingmoreAPI.getTrackingInfo();
                 } else {
-                    System.out.println("- Scan for: " + parameter);
-                    trackingmoreAPI.getTrackingInfoByOrderId(parameter);
+                    System.out.println("- Scan for: [" + parameter + "] ...  [" + dateCurrentStr + "]");
+                    String orderId = parameter.split("/")[0];
+                    String dateReceived = parameter.split("/")[1];
+                    System.out.println("- Order ID Input: " + orderId);
+                    System.out.println("- Date Received Input: " + dateReceived);
+                    trackingmoreAPI.getTrackingInfoByOrderId(orderId, dateReceived);
                 }
             }
             System.out.println();
@@ -64,7 +82,6 @@ public class Application {
             System.exit(exitCode);
         } catch (Exception e) {
             e.printStackTrace();
-            ConfigurableApplicationContext ctx = SpringApplication.run(Application.class, args);
             DBConnection.getInstance().closeConnection();
             int exitCode = SpringApplication.exit(ctx, new ExitCodeGenerator() {
                 @Override
