@@ -44,10 +44,10 @@ public class Application {
             System.out.println("Tracking App Running... [" + dateCurrentStr + "]");
             TrackingmoreAPI trackingmoreAPI = new TrackingmoreAPI();
 
-//            String parameter = "9415204/2021-06-09";
+//            String parameter = "signpify-439913/2021-06-17";
 //            if (parameter.equals("all")) {
-//                System.out.println("- Scan all...");
-//                trackingmoreAPI.getTrackingInfo();
+                System.out.println("- Scan all...");
+                trackingmoreAPI.getTrackingInfo();
 //            } else {
 //                System.out.println("- Scan for: [" + parameter + "] ...  [" + dateCurrentStr + "]");
 //                String orderId = parameter.split("/")[0];
@@ -57,19 +57,19 @@ public class Application {
 //                trackingmoreAPI.getTrackingInfoByOrderId(orderId, dateReceived);
 //            }
 
-            for (String parameter : args) {
-                if (parameter.equals("all")) {
-                    System.out.println("- Scan all...");
-                    trackingmoreAPI.getTrackingInfo();
-                } else {
-                    System.out.println("- Scan for: [" + parameter + "] ...  [" + dateCurrentStr + "]");
-                    String orderId = parameter.split("/")[0];
-                    String dateReceived = parameter.split("/")[1];
-                    System.out.println("- Order ID Input: " + orderId);
-                    System.out.println("- Date Received Input: " + dateReceived);
-                    trackingmoreAPI.getTrackingInfoByOrderId(orderId, dateReceived);
-                }
-            }
+//            for (String parameter : args) {
+//                if (parameter.equals("all")) {
+//                    System.out.println("- Scan all...");
+//                    trackingmoreAPI.getTrackingInfo();
+//                } else {
+//                    System.out.println("- Scan for: [" + parameter + "] ...  [" + dateCurrentStr + "]");
+//                    String orderId = parameter.split("/")[0];
+//                    String dateReceived = parameter.split("/")[1];
+//                    System.out.println("- Order ID Input: " + orderId);
+//                    System.out.println("- Date Received Input: " + dateReceived);
+//                    trackingmoreAPI.getTrackingInfoByOrderId(orderId, dateReceived);
+//                }
+//            }
             System.out.println();
             System.out.println("** DONE **");
             DBConnection.getInstance().closeConnection();

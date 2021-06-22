@@ -160,7 +160,7 @@ public class TrackingmoreAPI {
             if (responseObj.get("meta") instanceof JSONObject) {
                 JSONObject metaObject = new JSONObject(responseObj.get("meta").toString());
                 if (metaObject.get("code").toString().equals("4031")) {
-                    System.out.println("- [" + orderId + " --- " + trackingNumber + "] is NOT on Trackingmore.com!");
+                    System.out.println("- [" + orderId + " --- " + dateReceived + " --- " + trackingNumber + "] is NOT on Trackingmore.com!");
                     createTrackingOnTrackingMore(trackingNumber, carrier);
                 }
                 if (metaObject.get("code").toString().equals("200")) {
