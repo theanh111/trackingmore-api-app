@@ -13,17 +13,17 @@ public class DBConnection {
 
     private DBConnection() {
 
-        String url = "jdbc:mysql://128.199.143.87/pw_backoffice";
-        String username = "theanh";
-        String password = "1Q2w3e4r5t@@";
+//        String url = "jdbc:mysql://128.199.143.87/pw_backoffice";
+//        String username = "theanh";
+//        String password = "1Q2w3e4r5t@@";
 
 //        String url = "jdbc:mysql://192.168.1.188/orderdesk";
 //        String username = "theanh";
 //        String password = "pW@@theanh123";
 
-//        String url = "jdbc:mysql://localhost:3306/pw_backoffice";
-//        String username = "root";
-//        String password = "P@ssw0rd";
+        String url = "jdbc:mysql://localhost:3306/pw_backoffice";
+        String username = "root";
+        String password = "P@ssw0rd";
 
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -56,23 +56,44 @@ public class DBConnection {
 
     public void insert(TBLTracking tblTracking) {
         try {
-            Date dateCurrent = new Date(System.currentTimeMillis());
-            String sqlQuery = "INSERT INTO tbltracking (order_id, tracking_number, events, status, dtime_entered, last_events, transit_time, carrier_code, tracking_url, who_entered) " +
-                    "VALUES (?,?,?,?,?,?,?,?,?,?)";
-            PreparedStatement statement = this.connection.prepareStatement(sqlQuery);
-            statement.setString(1, tblTracking.getOrderId());
-            statement.setString(2, tblTracking.getTrackingNumber());
-            statement.setString(3, tblTracking.getEvents());
-            statement.setString(4, tblTracking.getStatus());
-            statement.setTimestamp(5, new Timestamp(dateCurrent.getTime()));
-            statement.setString(6, tblTracking.getLastEvents());
-            statement.setString(7, tblTracking.getTransitTime());
-            statement.setString(8, tblTracking.getCarrierCode());
-            statement.setString(9, "https://www.trackingmore.com/en/" + tblTracking.getTrackingNumber());
-            statement.setString(10, tblTracking.getWhoEntered());
-            statement.execute();
-            System.out.println("- SQL: " + statement);
-            this.connection.commit();
+            if (tblTracking.getGearmentOrderId() != null) {
+                Date dateCurrent = new Date(System.currentTimeMillis());
+                String sqlQuery = "INSERT INTO tbltracking (order_id, tracking_number, events, status, dtime_entered, last_events, transit_time, carrier_code, tracking_url, who_entered) " +
+                        "VALUES (?,?,?,?,?,?,?,?,?,?)";
+                PreparedStatement statement = this.connection.prepareStatement(sqlQuery);
+                statement.setString(1, tblTracking.getOrderId());
+                statement.setString(2, tblTracking.getTrackingNumber());
+                statement.setString(3, tblTracking.getEvents());
+                statement.setString(4, tblTracking.getStatus());
+                statement.setTimestamp(5, new Timestamp(dateCurrent.getTime()));
+                statement.setString(6, tblTracking.getLastEvents());
+                statement.setString(7, tblTracking.getTransitTime());
+                statement.setString(8, tblTracking.getCarrierCode());
+                statement.setString(9, tblTracking.getTrackingUrl());
+                statement.setString(10, tblTracking.getWhoEntered());
+                statement.execute();
+                System.out.println("- SQL: " + statement);
+                this.connection.commit();
+            } else {
+                Date dateCurrent = new Date(System.currentTimeMillis());
+                String sqlQuery = "INSERT INTO tbltracking (order_id, tracking_number, events, status, dtime_entered, last_events, transit_time, carrier_code, tracking_url, who_entered, tracking_type) " +
+                        "VALUES (?,?,?,?,?,?,?,?,?,?,?)";
+                PreparedStatement statement = this.connection.prepareStatement(sqlQuery);
+                statement.setString(1, tblTracking.getOrderId());
+                statement.setString(2, tblTracking.getTrackingNumber());
+                statement.setString(3, tblTracking.getEvents());
+                statement.setString(4, tblTracking.getStatus());
+                statement.setTimestamp(5, new Timestamp(dateCurrent.getTime()));
+                statement.setString(6, tblTracking.getLastEvents());
+                statement.setString(7, tblTracking.getTransitTime());
+                statement.setString(8, tblTracking.getCarrierCode());
+                statement.setString(9, "https://www.trackingmore.com/en/" + tblTracking.getTrackingNumber());
+                statement.setString(10, tblTracking.getWhoEntered());
+                statement.setString(11, "I");
+                statement.execute();
+                System.out.println("- SQL for IMPORT Tracking: " + statement);
+                this.connection.commit();
+            }
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -115,7 +136,7 @@ public class DBConnection {
     public List<TBLImportTracking> findAllOrderNotInTBLTracking() {
         List<TBLImportTracking> newTrackingList = new ArrayList<>();
         try {
-            String sqlQuery = "SELECT IT.order_id, IT.tracking_number, IT.tracking_url, IT.tracking_carrier, IT.dtime_entered " +
+            String sqlQuery = "SELECT IT.order_id, IT.tracking_number, IT.tracking_url, IT.tracking_carrier, IT.dtime_entered, IT.gearment_order_id " +
                     "FROM tblimporttracking IT " +
                     "WHERE LENGTH(IT.tracking_number) > 0 " +
                     "AND IT.order_id NOT IN (SELECT T.order_id FROM tbltracking T) ORDER BY IT.dtime_entered DESC";
@@ -127,6 +148,9 @@ public class DBConnection {
                 tblImportTracking.setTrackingNumber(resultSet.getString("tracking_number"));
                 tblImportTracking.setTrackingCarrier(resultSet.getString("tracking_carrier"));
                 tblImportTracking.setTrackingUrl(resultSet.getString("tracking_url"));
+                if (resultSet.getString("gearment_order_id") != null) {
+                    tblImportTracking.setGearmentOrderId(resultSet.getString("gearment_order_id"));
+                }
                 newTrackingList.add(tblImportTracking);
             }
         } catch (SQLException e) {

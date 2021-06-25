@@ -20,8 +20,9 @@ public class TBLTracking {
     private String transitTime;
     private String carrierCode;
     private String trackingUrl;
+    private String gearmentOrderId;
 
-    public TBLTracking createTBLTrackingObject(String tracking_number, String order_id, String events, String status, Date dtime_entered, String last_events, String transit_time, String carrier_code, String tracking_url) {
+    public TBLTracking createTBLTrackingObject(String tracking_number, String order_id, String events, String status, Date dtime_entered, String last_events, String transit_time, String carrier_code, String tracking_url, String gearment_order_id) {
         TBLTracking tblTracking = new TBLTracking();
         tblTracking.setWhoEntered("admin");
         tblTracking.setTrackingNumber(tracking_number);
@@ -33,6 +34,7 @@ public class TBLTracking {
         tblTracking.setDtimeEntered(dtime_entered);
         tblTracking.setCarrierCode(carrier_code);
         tblTracking.setTrackingUrl(tracking_url);
+        tblTracking.setGearmentOrderId(gearment_order_id);
         return tblTracking;
     }
 }

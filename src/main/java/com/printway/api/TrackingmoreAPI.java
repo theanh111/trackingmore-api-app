@@ -49,9 +49,10 @@ public class TrackingmoreAPI {
                 try {
                     System.out.println("- Order ID: " + tblImportTrackingList.get(i).getOrderId());
                     String tblTrackingStatus = tblTrackingService.findStatusByTrackingNumber(tblImportTrackingList.get(i).getTrackingNumber());
+                    String gearmentOrderId = tblImportTrackingList.get(i).getGearmentOrderId();
                     if (tblTrackingStatus == null) {
                         String carrierCode = getTrackingCarrier(tblImportTrackingList.get(i).getTrackingNumber());
-                        getTrackingResult(carrierCode, tblTrackingStatus, tblImportTrackingList.get(i));
+                        getTrackingResult(carrierCode, tblTrackingStatus, tblImportTrackingList.get(i), gearmentOrderId);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -80,7 +81,7 @@ public class TrackingmoreAPI {
         }
     }
 
-    public void getTrackingResult(String carrier, String tblDeliveryStatus, TBLImportTracking tblImportTracking) {
+    public void getTrackingResult(String carrier, String tblDeliveryStatus, TBLImportTracking tblImportTracking, String gearmentOrderId) {
         try {
             Date dateCurrent = new Date(System.currentTimeMillis());
             String trackingNumber = tblImportTracking.getTrackingNumber();
@@ -101,7 +102,7 @@ public class TrackingmoreAPI {
                 }
                 if (metaObject.get("code").toString().equals("200")) {
                     if (tblDeliveryStatus == null) {
-                        checkTrackingInfoToSave(responseObj, trackingNumber, orderId, dateCurrent, trackingUrl);
+                        checkTrackingInfoToSave(responseObj, trackingNumber, orderId, dateCurrent, trackingUrl, gearmentOrderId);
                     }
 //                    if (tblDeliveryStatus != null) {
 //                        if (!tblDeliveryStatus.equals("delivered")) {
@@ -182,7 +183,7 @@ public class TrackingmoreAPI {
         return carrierCode;
     }
 
-    public void checkTrackingInfoToSave(JSONObject responseObj, String trackingNumber, String orderId, Date dateCurrent, String trackingUrl) {
+    public void checkTrackingInfoToSave(JSONObject responseObj, String trackingNumber, String orderId, Date dateCurrent, String trackingUrl, String gearmentOrderId) {
         try {
             if (responseObj.has("data")) {
                 if (responseObj.get("data") instanceof JSONObject) {
@@ -196,22 +197,22 @@ public class TrackingmoreAPI {
                                     boolean originTrackinfoIsNull = originObj.get("trackinfo") == JSONObject.NULL;
                                     boolean destinationTrackinfoIsNull = destinationObj.get("trackinfo") == JSONObject.NULL;
                                     if (!originTrackinfoIsNull && !destinationTrackinfoIsNull) {
-                                        insertBothEvent(dataObj, originObj, destinationObj, trackingNumber, orderId, dateCurrent, trackingUrl);
+                                        insertBothEvent(dataObj, originObj, destinationObj, trackingNumber, orderId, dateCurrent, trackingUrl, gearmentOrderId);
                                         System.out.println("- SAVED TRACKINFO TO TBLTRACKING: Order ID [" + orderId + "]");
                                     }
                                     if (originTrackinfoIsNull && !destinationTrackinfoIsNull
                                             || !originTrackinfoIsNull && destinationTrackinfoIsNull) {
                                         if (!originTrackinfoIsNull) {
-                                            insertOriginEvent(dataObj, originObj, trackingNumber, orderId, dateCurrent, trackingUrl);
+                                            insertOriginEvent(dataObj, originObj, trackingNumber, orderId, dateCurrent, trackingUrl, gearmentOrderId);
                                             System.out.println("- SAVED TRACKINFO TO TBLTRACKING: Order ID [" + orderId + "]");
                                         }
                                         if (!destinationTrackinfoIsNull) {
-                                            insertDestinationEvent(dataObj, destinationObj, trackingNumber, orderId, dateCurrent, trackingUrl);
+                                            insertDestinationEvent(dataObj, destinationObj, trackingNumber, orderId, dateCurrent, trackingUrl, gearmentOrderId);
                                             System.out.println("- SAVED TRACKINFO TO TBLTRACKING: Order ID [" + orderId + "]");
                                         }
                                     }
                                     if (originTrackinfoIsNull && destinationTrackinfoIsNull) {
-                                        insertBothEvent(dataObj, originObj, destinationObj, trackingNumber, orderId, dateCurrent, trackingUrl);
+                                        insertBothEvent(dataObj, originObj, destinationObj, trackingNumber, orderId, dateCurrent, trackingUrl, gearmentOrderId);
                                         System.out.println("- SAVED TRACKINFO TO TBLTRACKING: Order ID [" + orderId + "]");
                                     }
                                 }
@@ -223,11 +224,11 @@ public class TrackingmoreAPI {
                             JSONObject originObj = new JSONObject(dataObj.get("origin_info").toString());
                             boolean originTrackinfoIsNull = originObj.get("trackinfo") == JSONObject.NULL;
                             if (!originTrackinfoIsNull) {
-                                insertOriginEvent(dataObj, originObj, trackingNumber, orderId, dateCurrent, trackingUrl);
+                                insertOriginEvent(dataObj, originObj, trackingNumber, orderId, dateCurrent, trackingUrl, gearmentOrderId);
                                 System.out.println("- SAVED TRACKINFO TO TBLTRACKING: Order ID [" + orderId + "]");
                             }
                             if (originTrackinfoIsNull) {
-                                insertOriginEvent(dataObj, originObj, trackingNumber, orderId, dateCurrent, trackingUrl);
+                                insertOriginEvent(dataObj, originObj, trackingNumber, orderId, dateCurrent, trackingUrl, gearmentOrderId);
                                 System.out.println("- SAVED TRACKINFO TO TBLTRACKING: Order ID [" + orderId + "]");
                             }
                         }
@@ -237,12 +238,12 @@ public class TrackingmoreAPI {
                             JSONObject destinationObj = new JSONObject(dataObj.get("destination_info").toString());
                             boolean destinationTrackinfoIsNull = destinationObj.get("trackinfo") == JSONObject.NULL;
                             if (!destinationTrackinfoIsNull) {
-                                insertDestinationEvent(dataObj, destinationObj, trackingNumber, orderId, dateCurrent, trackingUrl);
+                                insertDestinationEvent(dataObj, destinationObj, trackingNumber, orderId, dateCurrent, trackingUrl, gearmentOrderId);
                                 System.out.println("- SAVED TRACKINFO TO TBLTRACKING: Order ID [" + orderId + "]");
                             }
 
                             if (destinationTrackinfoIsNull) {
-                                insertDestinationEvent(dataObj, destinationObj, trackingNumber, orderId, dateCurrent, trackingUrl);
+                                insertDestinationEvent(dataObj, destinationObj, trackingNumber, orderId, dateCurrent, trackingUrl, gearmentOrderId);
                                 System.out.println("- SAVED TRACKINFO TO TBLTRACKING: Order ID [" + orderId + "]");
                             }
                         }
@@ -326,7 +327,7 @@ public class TrackingmoreAPI {
 //        }
 //    }
 
-    public TBLTracking getOriginEvent(JSONObject dataObj, JSONObject originObj, String trackingNumber, String orderId, Date dateCurrent, String trackingUrl) {
+    public TBLTracking getOriginEvent(JSONObject dataObj, JSONObject originObj, String trackingNumber, String orderId, Date dateCurrent, String trackingUrl, String gearmentOrderId) {
         if (originObj.get("trackinfo") instanceof JSONArray) {
             JSONArray originArray = originObj.getJSONArray("trackinfo");
             JSONObject events = new JSONObject();
@@ -356,7 +357,7 @@ public class TrackingmoreAPI {
                 } else {
                     status = dataObj.getString("status");
                 }
-                return tblTrackingObj.createTBLTrackingObject(trackingNumber, orderId, events.toString(), status, dateCurrent, lastEvent, transitTime, carrierCode, trackingUrl);
+                return tblTrackingObj.createTBLTrackingObject(trackingNumber, orderId, events.toString(), status, dateCurrent, lastEvent, transitTime, carrierCode, trackingUrl, gearmentOrderId);
             } catch (JSONException jsonException) {
                 jsonException.printStackTrace();
             }
@@ -389,7 +390,7 @@ public class TrackingmoreAPI {
                 } else {
                     status = dataObj.getString("status");
                 }
-                return tblTrackingObj.createTBLTrackingObject(trackingNumber, orderId, events.toString(), status, dateCurrent, lastEvent, transitTime, carrierCode, trackingUrl);
+                return tblTrackingObj.createTBLTrackingObject(trackingNumber, orderId, events.toString(), status, dateCurrent, lastEvent, transitTime, carrierCode, trackingUrl, gearmentOrderId);
             } catch (JSONException jsonException) {
                 jsonException.printStackTrace();
             }
@@ -397,7 +398,7 @@ public class TrackingmoreAPI {
         return null;
     }
 
-    public TBLTracking getDestinationEvent(JSONObject dataObj, JSONObject destinationObj, String trackingNumber, String orderId, Date dateCurrent, String trackingUrl) {
+    public TBLTracking getDestinationEvent(JSONObject dataObj, JSONObject destinationObj, String trackingNumber, String orderId, Date dateCurrent, String trackingUrl, String gearmentOrderId) {
         if (destinationObj.get("trackinfo") instanceof JSONArray) {
             JSONArray destinationArray = destinationObj.getJSONArray("trackinfo");
             JSONObject events = new JSONObject();
@@ -427,7 +428,7 @@ public class TrackingmoreAPI {
                 } else {
                     status = dataObj.getString("status");
                 }
-                return tblTrackingObj.createTBLTrackingObject(trackingNumber, orderId, events.toString(), status, dateCurrent, lastEvent, transitTime, carrierCode, trackingUrl);
+                return tblTrackingObj.createTBLTrackingObject(trackingNumber, orderId, events.toString(), status, dateCurrent, lastEvent, transitTime, carrierCode, trackingUrl, gearmentOrderId);
             } catch (JSONException jsonException) {
                 jsonException.printStackTrace();
             }
@@ -460,7 +461,7 @@ public class TrackingmoreAPI {
                 } else {
                     status = dataObj.getString("status");
                 }
-                return tblTrackingObj.createTBLTrackingObject(trackingNumber, orderId, events.toString(), status, dateCurrent, lastEvent, transitTime, carrierCode, trackingUrl);
+                return tblTrackingObj.createTBLTrackingObject(trackingNumber, orderId, events.toString(), status, dateCurrent, lastEvent, transitTime, carrierCode, trackingUrl, gearmentOrderId);
             } catch (JSONException jsonException) {
                 jsonException.printStackTrace();
             }
@@ -468,7 +469,7 @@ public class TrackingmoreAPI {
         return null;
     }
 
-    public TBLTracking getBothEvent(JSONObject dataObj, JSONObject originObj, JSONObject destinationObj, String trackingNumber, String orderId, Date dateCurrent, String trackingUrl) {
+    public TBLTracking getBothEvent(JSONObject dataObj, JSONObject originObj, JSONObject destinationObj, String trackingNumber, String orderId, Date dateCurrent, String trackingUrl, String gearmentOrderId) {
         TBLTracking tblTracking = new TBLTracking();
         JSONObject events = new JSONObject();
         boolean originTrackinfoIsNull = originObj.get("trackinfo") == JSONObject.NULL;
@@ -502,7 +503,7 @@ public class TrackingmoreAPI {
                     status = dataObj.getString("status");
                 }
 
-                tblTracking = tblTrackingObj.createTBLTrackingObject(trackingNumber, orderId, events.toString(), status, dateCurrent, lastEvent, transitTime, carrierCode, trackingUrl);
+                tblTracking = tblTrackingObj.createTBLTrackingObject(trackingNumber, orderId, events.toString(), status, dateCurrent, lastEvent, transitTime, carrierCode, trackingUrl, gearmentOrderId);
             } catch (JSONException jsonException) {
                 jsonException.printStackTrace();
             }
@@ -538,7 +539,7 @@ public class TrackingmoreAPI {
                     } else {
                         status = dataObj.getString("status");
                     }
-                    tblTracking = tblTrackingObj.createTBLTrackingObject(trackingNumber, orderId, events.toString(), status, dateCurrent, lastEvent, transitTime, carrierCode, trackingUrl);
+                    tblTracking = tblTrackingObj.createTBLTrackingObject(trackingNumber, orderId, events.toString(), status, dateCurrent, lastEvent, transitTime, carrierCode, trackingUrl, gearmentOrderId);
                 } catch (JSONException jsonException) {
                     jsonException.printStackTrace();
                 }
@@ -547,18 +548,18 @@ public class TrackingmoreAPI {
         return tblTracking;
     }
 
-    public void insertBothEvent(JSONObject dataObj, JSONObject originObj, JSONObject destinationObj, String trackingNumber, String orderId, Date dateCurrent, String trackingUrl) {
-        TBLTracking tblTracking = getBothEvent(dataObj, originObj, destinationObj, trackingNumber, orderId, dateCurrent, trackingUrl);
+    public void insertBothEvent(JSONObject dataObj, JSONObject originObj, JSONObject destinationObj, String trackingNumber, String orderId, Date dateCurrent, String trackingUrl, String gearmentOrderId) {
+        TBLTracking tblTracking = getBothEvent(dataObj, originObj, destinationObj, trackingNumber, orderId, dateCurrent, trackingUrl, gearmentOrderId);
         tblTrackingService.insert(tblTracking);
     }
 
-    public void insertOriginEvent(JSONObject dataObj, JSONObject originObj, String trackingNumber, String orderId, Date dateCurrent, String trackingUrl) {
-        TBLTracking tblTracking = getOriginEvent(dataObj, originObj, trackingNumber, orderId, dateCurrent, trackingUrl);
+    public void insertOriginEvent(JSONObject dataObj, JSONObject originObj, String trackingNumber, String orderId, Date dateCurrent, String trackingUrl, String gearmentOrderId) {
+        TBLTracking tblTracking = getOriginEvent(dataObj, originObj, trackingNumber, orderId, dateCurrent, trackingUrl, gearmentOrderId);
         tblTrackingService.insert(tblTracking);
     }
 
-    public void insertDestinationEvent(JSONObject dataObj, JSONObject destinationObj, String trackingNumber, String orderId, Date dateCurrent, String trackingUrl) {
-        TBLTracking tblTracking = getDestinationEvent(dataObj, destinationObj, trackingNumber, orderId, dateCurrent, trackingUrl);
+    public void insertDestinationEvent(JSONObject dataObj, JSONObject destinationObj, String trackingNumber, String orderId, Date dateCurrent, String trackingUrl, String gearmentOrderId) {
+        TBLTracking tblTracking = getDestinationEvent(dataObj, destinationObj, trackingNumber, orderId, dateCurrent, trackingUrl, gearmentOrderId);
         tblTrackingService.insert(tblTracking);
     }
 
