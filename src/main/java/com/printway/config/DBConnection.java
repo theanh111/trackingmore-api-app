@@ -13,17 +13,17 @@ public class DBConnection {
 
     private DBConnection() {
 
-//        String url = "jdbc:mysql://128.199.143.87/pw_backoffice";
-//        String username = "theanh";
-//        String password = "1Q2w3e4r5t@@";
+        String url = "jdbc:mysql://128.199.143.87/pw_backoffice";
+        String username = "theanh";
+        String password = "1Q2w3e4r5t@@";
 
 //        String url = "jdbc:mysql://192.168.1.188/orderdesk";
 //        String username = "theanh";
 //        String password = "pW@@theanh123";
 
-        String url = "jdbc:mysql://localhost:3306/pw_backoffice";
-        String username = "root";
-        String password = "P@ssw0rd";
+//        String url = "jdbc:mysql://localhost:3306/pw_backoffice";
+//        String username = "root";
+//        String password = "P@ssw0rd";
 
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
