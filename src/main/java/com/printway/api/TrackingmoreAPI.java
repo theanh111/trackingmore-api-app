@@ -39,68 +39,6 @@ public class TrackingmoreAPI {
     private DeliveryService deliveryService = new DeliveryService();
     private NewTrackingService newTrackingService = new NewTrackingService();
 
-//    public void getTrackingInfoByOrderId(String orderId, String dateReceived) {
-//        try {
-//            DBConnection.getInstance().getConnection().setAutoCommit(false);
-//            boolean checkOrderIdNewTracking = newTrackingService.checkOrderIdInTBLNewtracking(orderId, dateReceived);
-//            if (checkOrderIdNewTracking) {
-//                System.out.println("- Order ID: [" + orderId + "] - DATE RECEIVED: [" + dateReceived + "] is EXIST IN TBL NEWTRACKING!");
-//                boolean checkOrderIdDelivery = deliveryService.checkOrderIdInTBLDelivery(orderId, dateReceived);
-//                if (checkOrderIdDelivery) {
-//                    System.out.println("- Order ID: [" + orderId + "] - DATE RECEIVED: [" + dateReceived + "] is EXIST IN TBL DELIVERY!");
-//                    TBLNewTracking tblNewTracking = newTrackingService.findOneOrderToUpdate(orderId, dateReceived);
-//                    List<TBLNewTracking> listNewTracking = new ArrayList<>();
-//                    listNewTracking.add(tblNewTracking);
-//                    System.out.println("**Total orders have trackingnumber in TBLNewtracking to scan: " + listNewTracking.size());
-//                    System.out.println("* Checking to Update...");
-//                    for (int i = 0; i < listNewTracking.size(); i++) {
-//                        try {
-//                            TBLNewTracking tblNewTracking1 = listNewTracking.get(i);
-//                            String trackingNumber = listNewTracking.get(i).getTrackingNumber();
-//                            String dateReceivedTBLNewTracking = listNewTracking.get(i).getDate_received();
-//                            String tblDeliveryStatus = deliveryService.findStatusByTrackingNumber(trackingNumber, dateReceivedTBLNewTracking);
-//                            if (tblDeliveryStatus != null && !tblDeliveryStatus.equals("delivered")) {
-//                                String carrierCode = getTrackingCarrier(tblNewTracking1);
-//                                getTrackingResult(carrierCode, tblDeliveryStatus, listNewTracking.get(i));
-//                            }
-//                        } catch (Exception e) {
-//                            e.printStackTrace();
-//                            continue;
-//                        }
-//                    }
-//                } else {
-//                    System.out.println("- Order ID: [" + orderId + "] - DATE RECEIVED: [" + dateReceived + "] is NOT EXIST IN TBL DELIVERY!");
-//                    TBLNewTracking tblNewTracking = newTrackingService.findOneOrderToAdd(orderId, dateReceived);
-//                    List<TBLNewTracking> listNewTracking = new ArrayList<>();
-//                    listNewTracking.add(tblNewTracking);
-//                    System.out.println("** Total orders have trackingnumber in TBLNewtracking to scan: " + listNewTracking.size());
-//                    System.out.println("* Checking to Add New...");
-//                    for (int i = 0; i < listNewTracking.size(); i++) {
-//                        try {
-//                            TBLNewTracking tblNewTracking1 = listNewTracking.get(i);
-//                            String trackingNumber = tblNewTracking1.getTrackingNumber();
-//                            System.out.println("- TBLNewtracking Tracking Number: " + trackingNumber);
-//                            String dateReceivedTBLNewTracking = listNewTracking.get(i).getDate_received();
-//                            System.out.println("- TBLNewtracking Date Received: " + dateReceivedTBLNewTracking);
-//                            String tblDeliveryStatus = deliveryService.findStatusByTrackingNumber(trackingNumber, dateReceivedTBLNewTracking);
-//                            if (tblDeliveryStatus == null) {
-//                                String carrierCode = getTrackingCarrier(tblNewTracking1);
-//                                getTrackingResult(carrierCode, tblDeliveryStatus, listNewTracking.get(i));
-//                            }
-//                        } catch (Exception e) {
-//                            e.printStackTrace();
-//                            continue;
-//                        }
-//                    }
-//                }
-//            } else {
-//                System.out.println("- CAN'T FIND Order ID: [" + orderId + "] - DATE RECEIVED: [" + dateReceived + "] IN TBLNEWTRACKING!");
-//            }
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//    }
-
     public void getTrackingInfo() {
         try {
             DBConnection.getInstance().getConnection().setAutoCommit(false);
@@ -157,7 +95,6 @@ public class TrackingmoreAPI {
                 }
                 System.out.println();
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
