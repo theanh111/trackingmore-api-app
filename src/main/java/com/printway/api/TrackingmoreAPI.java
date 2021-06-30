@@ -42,7 +42,7 @@ public class TrackingmoreAPI {
     public void getTrackingInfo() {
         try {
             DBConnection.getInstance().getConnection().setAutoCommit(false);
-//
+
 //            List<TBLNewTracking> listNewTracking = newTrackingService.findAllOrderNotInTBLDelivery();
 //            System.out.println("** Total orders have trackingnumber in TBLNewtracking to scan: " + listNewTracking.size());
 //            System.out.println("* Checking to Add New...");
@@ -223,8 +223,6 @@ public class TrackingmoreAPI {
                                     carrierCode = carrierCodeCheck(code);
                                 }
                             }
-
-
                         }
                         System.out.println("- Carrier: " + carrierCode);
                     }
