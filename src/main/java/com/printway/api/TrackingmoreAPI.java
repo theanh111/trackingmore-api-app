@@ -69,7 +69,14 @@ public class TrackingmoreAPI {
 //                System.out.println();
 //            }
 
+//            List<TBLNewTracking> listNewTracking = newTrackingService.findAllOrderToUpdateInTBLDelivery();
             List<TBLNewTracking> listNewTracking = newTrackingService.findAllOrderToUpdateInTBLDelivery();
+//            List<TBLNewTracking> listNewTracking = new ArrayList<>();
+//            TBLNewTracking tblNewTracking222 = new TBLNewTracking();
+//            tblNewTracking222.setOrderId("TUY2-TUY65976");
+//            tblNewTracking222.setTrackingNumber("420148509261290300706600007145");
+//            tblNewTracking222.setPartnerTrackingNumber("PW029046F9O9L9");
+//            listNewTracking.add(tblNewTracking222);
             System.out.println("** Total orders in TBLDelivery to scan: " + listNewTracking.size());
             System.out.println("* Checking to Update...");
             for (int i = 0; i < listNewTracking.size(); i++) {

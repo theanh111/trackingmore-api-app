@@ -2,6 +2,7 @@ package com.printway.config;
 
 import com.printway.entityDB.TBLDelivery;
 import com.printway.entityDB.TBLNewTracking;
+import com.printway.entityDB.TBLNeworders;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -12,13 +13,13 @@ public class DBConnection {
     private Connection connection;
 
     private DBConnection() {
-        String url = "jdbc:mysql://192.168.1.188/orderdesk";
-        String username = "theanh";
-        String password = "pW@@theanh123";
+//        String url = "jdbc:mysql://192.168.1.188/orderdesk";
+//        String username = "theanh";
+//        String password = "pW@@theanh123";
 
-//        String url = "jdbc:mysql://localhost:3306/orderdesk";
-//        String username = "root";
-//        String password = "P@ssw0rd";
+        String url = "jdbc:mysql://localhost:3306/orderdesk";
+        String username = "root";
+        String password = "P@ssw0rd";
 
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
@@ -29,11 +30,11 @@ public class DBConnection {
         }
     }
 
+
     public static DBConnection getInstance() {
         if (dbConnection == null) {
             dbConnection = new DBConnection();
         }
-
         return dbConnection;
     }
 
@@ -153,14 +154,12 @@ public class DBConnection {
         return status;
     }
 
-    public List<TBLNewTracking> findAllOrderNotInTBLDelivery() {
-        List<TBLNewTracking> newTrackingList = new ArrayList<>();
+    public TBLNeworders findOrderDateReceivedAnd() {
+        List<TBLNeworders> newOrderDateList = new ArrayList<>();
         try {
-            String sqlQuery = "SELECT T.order_id, T.tracking_number, T.partner_tracking_number, T.date_received, T.dtime_entered " +
-                    "FROM tblnewtracking T " +
-                    "WHERE LENGTH(T.partner_tracking_number) > 0 " +
-                    "AND T.order_id NOT IN (SELECT order_number FROM tbldelivery) " +
-                    "ORDER BY T.dtime_entered DESC";
+            String sqlQuery = "select order_id, date_received, DATE_FORMAT(dtime_entered, \"%Y-%m-%d\") as dtimeEntered \n" +
+                    "FROM tblneworders where order_id = \"dp1739\"\n" +
+                    "GROUP BY order_id, date_received, dtimeEntered;";
             PreparedStatement statement = this.connection.prepareStatement(sqlQuery);
             ResultSet resultSet = statement.executeQuery();
             while (resultSet.next()) {
@@ -168,9 +167,30 @@ public class DBConnection {
                 tblNewTracking.setOrderId(resultSet.getString("order_id"));
                 tblNewTracking.setTrackingNumber(resultSet.getString("partner_tracking_number"));
                 tblNewTracking.setPartnerTrackingNumber(resultSet.getString("tracking_number"));
-                if (resultSet.getDate("date_received") != null) {
-                    tblNewTracking.setDate_received(resultSet.getDate("date_received").toString());
-                }
+                newTrackingList.add(tblNewTracking);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return newTrackingList;
+    }
+
+    public List<TBLNewTracking> findAllOrderNotInTBLDelivery() {
+        List<TBLNewTracking> newTrackingList = new ArrayList<>();
+        try {
+            String sqlQuery = "SELECT T.order_id, T.tracking_number, T.partner_tracking_number " +
+                    "FROM tblnewtracking T " +
+                    "WHERE LENGTH(T.partner_tracking_number) > 0 " +
+                    "AND T.partner_tracking_number NOT IN (SELECT tracking_number FROM tbldelivery) " +
+                    "AND T.canceled = 'N' " +
+                    "ORDER BY T.dtime_entered DESC;";
+            PreparedStatement statement = this.connection.prepareStatement(sqlQuery);
+            ResultSet resultSet = statement.executeQuery();
+            while (resultSet.next()) {
+                TBLNewTracking tblNewTracking = new TBLNewTracking();
+                tblNewTracking.setOrderId(resultSet.getString("order_id"));
+                tblNewTracking.setTrackingNumber(resultSet.getString("partner_tracking_number"));
+                tblNewTracking.setPartnerTrackingNumber(resultSet.getString("tracking_number"));
                 newTrackingList.add(tblNewTracking);
             }
         } catch (SQLException e) {
@@ -268,6 +288,34 @@ public class DBConnection {
         return tblNewTracking;
     }
 
+//    public List<TBLNewTracking> findAllOrderToUpdate() {
+//        List<TBLNewTracking> newTrackingList = new ArrayList<>();
+//        try {
+//            String sqlQuery = "SELECT order_number as order_id, tracking_number, partner_tracking_number, date_received, dtime_entered " +
+//                    "FROM tbldelivery " +
+//                    "WHERE length(carrier_code) > 0 " +
+//                    "AND length(order_number) > 0 " +
+//                    "AND status NOT IN ('delivered') " +
+////                    "AND partner_tracking_number like 'PW%' " +
+//                    "ORDER BY dtime_entered DESC;";
+//            PreparedStatement statement = this.connection.prepareStatement(sqlQuery);
+//            ResultSet resultSet = statement.executeQuery();
+//            while (resultSet.next()) {
+//                TBLNewTracking tblNewTracking = new TBLNewTracking();
+//                tblNewTracking.setOrderId(resultSet.getString("order_id"));
+//                tblNewTracking.setTrackingNumber(resultSet.getString("tracking_number"));
+//                tblNewTracking.setPartnerTrackingNumber(resultSet.getString("partner_tracking_number"));
+//                if (tblNewTracking.getDate_received() != null) {
+//                    tblNewTracking.setDate_received(resultSet.getDate("date_received").toString());
+//                }
+//                newTrackingList.add(tblNewTracking);
+//            }
+//        } catch (SQLException e) {
+//            e.printStackTrace();
+//        }
+//        return newTrackingList;
+//    }
+
     public List<TBLNewTracking> findAllOrderToUpdate() {
         List<TBLNewTracking> newTrackingList = new ArrayList<>();
         try {
@@ -276,7 +324,7 @@ public class DBConnection {
                     "WHERE length(carrier_code) > 0 " +
                     "AND length(order_number) > 0 " +
                     "AND status NOT IN ('delivered') " +
-//                    "AND partner_tracking_number like 'PW%' " +
+                    "AND partner_tracking_number like 'PW%' " +
                     "ORDER BY dtime_entered DESC;";
             PreparedStatement statement = this.connection.prepareStatement(sqlQuery);
             ResultSet resultSet = statement.executeQuery();
@@ -325,7 +373,6 @@ public class DBConnection {
                     return true;
                 }
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
