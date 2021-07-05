@@ -12,7 +12,7 @@ public class DBConnection {
     private Connection connection;
 
     private DBConnection() {
-        String url = "jdbc:mysql://192.168.1.188/orderdesk";
+        String url = "jdbc:mysql://192.168.1.188/orderdesk?autoReconnect=true&useUnicode=yes";
         String username = "theanh";
         String password = "pW@@theanh123";
 
